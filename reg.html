@@ -195,11 +195,18 @@ async function submitRegister() {
     btn.textContent = '正在保存...';
     msg.textContent = '';
 
-    // 4. 提交给 Worker
+
+// 4. 提交给 Worker
     try {
+        // === 核心修改开始 ===
+        // 强制在手机号前加英文单引号，告诉 Google Sheets 这是文本，别吞 0
+        // 注意：这里用原始手机号加引号，因为 lockedPhone 可能已经被处理过了
+        const safePhone = "'" + document.getElementById('lockedPhone').value;
+        // === 核心修改结束 ===
+
         const formData = new FormData();
         formData.append('action', 'registerWithPassword');
-        formData.append('phone', phone);
+        formData.append('phone', safePhone); // 把加了引号的手机号发给后端
         formData.append('name', name);
         formData.append('password', password);
 
