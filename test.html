@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户注册系统</title>
+    <style>
+        /* 保持原有漂亮UI */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .step-container { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); max-width: 400px; width: 100%; transition: all 0.3s ease; }
+        .hidden { display: none !important; }
+        .form-header { text-align: center; margin-bottom: 25px; }
+        .form-header h2 { color: #2c3e50; margin: 0 0 10px 0; font-size: 24px; font-weight: 600; }
+        .form-header p { color: #7f8c8d; margin: 0; font-size: 14px; }
+        
+        .input-group { margin-bottom: 20px; position: relative; }
+        .input-group label { display: block; margin-bottom: 8px; color: #2c3e50; font-weight: 500; font-size: 14px; }
+        .input-group input { width: 100%; padding: 14px; border: 2px solid #e1e8ed; border-radius: 8px; font-size: 16px; transition: border-color 0.3s ease; box-sizing: border-box; }
+        .input-group input:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }
+        .input-group input[readonly] { background-color: #f8f9fa; color: #6c757d; cursor: not-allowed; }
+
+        /* 密码小眼睛 */
+        .toggle-password {
+            position: absolute; right: 12px; top: 42px; background: none; border: none;
+            color: #7f8c8d; font-size: 18px; cursor: pointer; padding: 4px; z-index: 10;
+        }
+        .toggle-password:hover { color: #2c3e50; }
+
+        .primary-btn { padding: 14px 24px; border: none; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; width: 100%; background: linear-gradient(135deg, #3498db, #2980b9); color: white; margin-top: 10px; }
+        .primary-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3); }
+        .primary-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .message { margin-top: 15px; padding: 12px; border-radius: 6px; font-size: 14px; text-align: center; }
+        .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+
+    <!-- 步骤1：验证手机号 (查Worker) -->
+    <div id="step1" class="step-container">
+        <div class="form-header">
+            <h2>📱 资格验证</h2>
+            <p>请输入手机号查询注册资格</p>
+        </div>
+        <div class="input-group">
+            <label>手机号码</label>
+            <input type="tel" id="phone" placeholder="例: 0123456789" maxlength="11">
+        </div>
+        <button id="checkBtn" class="primary-btn" onclick="verifyPhone()">验证资格</button>
+        <div id="msg1" class="message"></div>
+    </div>
+
+    <!-- 步骤2：填写注册资料 (存GAS) -->
+    <div id="step2" class="step-container hidden">
+        <div class="form-header">
+            <h2>📝 填写资料</h2>
+            <p>验证通过，请完善账户信息</p>
+        </div>
+        
+        <!-- 锁定的手机号 -->
+        <div class="input-group">
+            <label>手机号码</label>
+            <input type="text" id="lockedPhone" readonly>
+        </div>
+
+        <!-- 姓名 (手动填) -->
+        <div class="input-group">
+            <label>用户姓名</label>
+            <input type="text" id="name" placeholder="请输入您的真实姓名">
+        </div>
+
+        <!-- 密码 -->
+        <div class="input-group">
+            <label>设置密码</label>
+            <input type="password" id="password" placeholder="请输入密码">
+            <button type="button" class="toggle-password" onclick="togglePass('password')">👁️</button>
+        </div>
+
+        <!-- 确认密码 -->
+        <div class="input-group">
+            <label>确认密码</label>
+            <input type="password" id="confirmPassword" placeholder="再次输入密码">
+            <button type="button" class="toggle-password" onclick="togglePass('confirmPassword')">👁️</button>
+        </div>
+
+        <button id="submitBtn" class="primary-btn" onclick="submitRegister()">完成注册</button>
+        <div id="msg2" class="message"></div>
+    </div>
+
+    <script>
+        // --- 配置区域 ---
+        
+        // 1. 验证路径 (User-Center 的 Worker 列表)
+        const VALIDATION_URLS = [
+            "https://form.gealarm2012.workers.dev/admin-qifu?search=", 
+            "https://form.gealarm2012.workers.dev/admin-chaodu?search=", 
+            "https://lucky-cloud-f9c3.gealarm2012.workers.dev?search="
+        ];
+
+        // 2. 保存路径 (你的 GAS 代理)
+        const GAS_URL = 'https://reg.gealarm2012.workers.dev'; 
+
+        // --- 逻辑区域 ---
+
+        // 切换密码显示
+        function togglePass(id) {
+            const input = document.getElementById(id);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        // 1. 验证手机号 (轮询 Worker)
+        async function verifyPhone() {
+            const phoneInput = document.getElementById('phone');
+            const phone = phoneInput.value.trim();
+            const btn = document.getElementById('checkBtn');
+            const msg = document.getElementById('msg1');
+
+            // 简单格式验证
+            const malaysiaPhoneRegex = /^01[0-9]{8,9}$/;
+            if (!malaysiaPhoneRegex.test(phone)) {
+                msg.textContent = '请输入正确的马来西亚手机号';
+                msg.className = 'message error';
+                return;
+            }
+
+            // UI 状态
+            btn.disabled = true;
+            btn.textContent = '查询中...';
+            msg.textContent = '';
+
+            let found = false;
+
+            // 遍历所有链接进行查询
+            for (const url of VALIDATION_URLS) {
+                try {
+                    const response = await fetch(url + phone);
+                    if (response.ok) {
+                        const data = await response.json();
+                        // 只要返回了数据（假设非空即为找到），就算验证通过
+                        if (data && (data.name || data.length > 0 || data.exists)) {
+                            found = true;
+                            break; // 找到了就停止循环
+                        }
+                    }
+                } catch (err) {
+                    console.warn('查询失败:', url, err);
+                    // 继续尝试下一个
+                }
+            }
+
+            if (found) {
+                // 验证成功，进入第二步
+                document.getElementById('lockedPhone').value = phone;
+                document.getElementById('step1').classList.add('hidden');
+                document.getElementById('step2').classList.remove('hidden');
+            } else {
+                // 验证失败
+                msg.textContent = '未找到该手机号的记录，请联系管理员确认资格';
+                msg.className = 'message error';
+                btn.disabled = false;
+                btn.textContent = '验证资格';
+            }
+        }
+
+        // 2. 提交注册 (先二次验证，再保存)
+async function submitRegister() {
+    const phone = document.getElementById('lockedPhone').value;
+    const name = document.getElementById('name').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPass = document.getElementById('confirmPassword').value;
+    const btn = document.getElementById('submitBtn');
+    const msg = document.getElementById('msg2');
+
+    // 确保手机号和密码都被视为字符串
+    const phoneStr = phone.toString();  // 确保是字符串
+    const passwordStr = password.toString(); // 确保是字符串
+    
+    // 1. 基础格式验证
+    if (!name) { 
+        msg.textContent = '请输入姓名'; 
+        msg.className = 'message error'; 
+        return; 
+    }
+    if (!password) { 
+        msg.textContent = '请设置密码'; 
+        msg.className = 'message error'; 
+        return; 
+    }
+    if (password !== confirmPass) { 
+        msg.textContent = '两次密码不一致'; 
+        msg.className = 'message error'; 
+        return; 
+    }
+
+    btn.disabled = true;
+    btn.textContent = '最终核对中...';
+    msg.textContent = '';
+
+    // 2. 【新增】提交前的二次验证
+    let isValidToRegister = false;
+    
+    try {
+         const checkResp = await fetch(VALIDATION_URLS[0] + phone);
+         if (checkResp.ok) {
+             const data = await checkResp.json();
+             if (data && (data.name || data.length > 0)) {
+                 isValidToRegister = true;
+             }
+         }
+    } catch(e) { console.log(e); }
+
+    if (!isValidToRegister) {
+        msg.textContent = '验证失效：该手机号可能已被注册或失去资格，请刷新重试';
+        msg.className = 'message error';
+        btn.disabled = false;
+        btn.textContent = '完成注册';
+        return;
+    }
+
+    // 3. 验证通过，发送给 GAS 保存
+    btn.textContent = '正在保存...';
+    
+    try {
+        const formData = new FormData();
+        formData.append('action', 'registerWithPassword');
+        formData.append('phone', phoneStr); // 使用字符串形式
+        formData.append('name', name);
+        formData.append('password', passwordStr); // 使用字符串形式
+
+        const response = await fetch(GAS_URL, {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            msg.textContent = '注册成功！即将跳转...';
+            msg.className = 'message success';
+            
+            localStorage.setItem('userInfo', JSON.stringify({
+                phone: phoneStr,
+                name: name,
+                isLoggedIn: true
+            }));
+
+            setTimeout(() => {
+                window.location.href = 'user-center.html'; 
+            }, 1500);
+        } else {
+            msg.textContent = result.error || '注册失败';
+            msg.className = 'message error';
+            btn.disabled = false;
+            btn.textContent = '完成注册';
+        }
+
+    } catch (err) {
+        msg.textContent = '网络错误';
+        msg.className = 'message error';
+        btn.disabled = false;
+        btn.textContent = '完成注册';
+    }
+}
+
+            // 3. 验证通过，发送给 GAS 保存
+            btn.textContent = '正在保存...';
+            
+            try {
+                const formData = new FormData();
+                formData.append('action', 'registerWithPassword');
+                formData.append('phone', phone);
+                formData.append('name', name);
+                formData.append('password', password);
+
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    msg.textContent = '注册成功！即将跳转...';
+                    msg.className = 'message success';
+                    
+                    // 保存登录态
+                    localStorage.setItem('userInfo', JSON.stringify({
+                        phone: phone,
+                        name: name,
+                        isLoggedIn: true
+                    }));
+
+                    setTimeout(() => {
+                        window.location.href = 'user-center.html'; 
+                    }, 1500);
+                } else {
+                    msg.textContent = result.error || '注册失败';
+                    msg.className = 'message error';
+                    btn.disabled = false;
+                    btn.textContent = '完成注册';
+                }
+
+            } catch (err) {
+                msg.textContent = '网络错误';
+                msg.className = 'message error';
+                btn.disabled = false;
+                btn.textContent = '完成注册';
+            }
+        }
+    </script>
+</body>
+</html>
