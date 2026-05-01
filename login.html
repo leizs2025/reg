@@ -236,31 +236,35 @@
             return malaysiaPhoneRegex.test(phone);
         }
 
-        // 通过Worker代理发送请求
-        async function sendToWorker(action, data) {
-            try {
-                const response = await fetch(WORKER_PROXY_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: action,
-                        data: data
-                    })
-                });
+      // 替换掉原来的 sendToWorker 函数
+async function sendToWorker(action, data) {
+  try {
+    // 1. 创建 FormData 对象
+    const formData = new FormData();
+    
+    // 2. 把 action 和 data 里的所有字段都加进去
+    formData.append('action', action);
+    for (let key in data) {
+      formData.append(key, data[key]);
+    }
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+    // 3. 发送 FormData 而不是 JSON
+    const response = await fetch(WORKER_PROXY_URL, {
+      method: 'POST',
+      body: formData // 这里不要 headers，让浏览器自动设置 multipart/form-data
+    });
 
-                const result = await response.json();
-                return result;
-            } catch (error) {
-                console.error('Worker请求错误:', error);
-                throw error;
-            }
-        }
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Worker请求错误:', error);
+    throw error;
+  }
+}
 
 // 登录功能 (修改版)
 async function login() {
