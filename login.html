@@ -264,62 +264,56 @@
             }
         }
 
-        // 登录功能
-        async function login() {
-            const phoneInput = document.getElementById('phone');
-            const passwordInput = document.getElementById('password');
-            const phone = phoneInput.value.trim();
-            const password = passwordInput.value.trim();
-            const loginBtn = document.getElementById('loginBtn');
-            
-            if (!phone || !password) {
-                showMessage('请输入手机号和密码', 'error');
-                return;
-            }
-            
-            if (!isValidMalaysiaPhone(phone)) {
-                showMessage('请输入正确的马来西亚手机号格式 (例: 0123456789 或 01234567890)', 'error');
-                return;
-            }
-            
-            loginBtn.disabled = true;
-            loginBtn.innerHTML = '<i class="loading-icon">⏳</i> 登录中...';
-            
-            try {
-                const result = await sendToWorker('loginUser', { 
-                    phone: phone, 
-                    password: password 
-                });
-                
-                if (result.success) {
-                    showMessage('登录成功！', 'success');
-                    
-                    // 显示欢迎信息
-                    document.getElementById('welcomeText').textContent = 
-                        `欢迎您，${result.name || '用户'}！\n您的手机号：${phone}\n登录时间：${new Date().toLocaleString()}`;
-                    document.getElementById('welcomeMessage').style.display = 'block';
-                    
-                    // 可以在这里添加登录后的逻辑，比如重定向到主页面
-                    console.log('登录成功，用户信息：', result);
-                    
-                    // 保存用户信息到本地存储（可选）
-                    localStorage.setItem('currentUser', JSON.stringify({
-                        phone: phone,
-                        name: result.name,
-                        loginTime: new Date().toISOString()
-                    }));
-                    
-                } else {
-                    showMessage(result.error || '登录失败', 'error');
-                }
-            } catch (error) {
-                showMessage('登录失败: ' + error.message, 'error');
-            } finally {
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = '登录';
-            }
-        }
+// 登录功能 (修改版)
+async function login() {
+    const phoneInput = document.getElementById('phone');
+    const passwordInput = document.getElementById('password');
+    const phone = phoneInput.value.trim();
+    const password = passwordInput.value.trim();
+    const loginBtn = document.getElementById('loginBtn');
 
+    if (!phone || !password) {
+        showMessage('请输入手机号和密码', 'error');
+        return;
+    }
+    if (!isValidMalaysiaPhone(phone)) {
+        showMessage('请输入正确的马来西亚手机号格式 (例: 0123456789)', 'error');
+        return;
+    }
+
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = '<i class="loading-icon">⏳</i> 登录中...';
+
+    try {
+        const result = await sendToWorker('loginUser', { phone: phone, password: password });
+        if (result.success) {
+            // ✅ 修改点1：登录成功后，保存用户信息到 localStorage
+            // 这样用户中心和报名页能读取到用户是谁
+            const userInfo = {
+                phone: phone,
+                name: result.name,
+                isLoggedIn: true
+            };
+            localStorage.setItem('userInfo', JSON.stringify(userInfo));
+
+            // ✅ 修改点2：不再显示欢迎信息，而是提示并跳转
+            showMessage('登录成功！正在跳转...', 'success');
+            
+            // 1秒后跳转到用户中心
+            setTimeout(() => {
+                window.location.href = 'user-center.html'; // 跳转到用户中心
+            }, 1000);
+            
+        } else {
+            showMessage(result.error || '登录失败', 'error');
+        }
+    } catch (error) {
+        showMessage('登录失败: ' + error.message, 'error');
+    } finally {
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '登录';
+    }
+}
         // 添加登录用户函数到GAS
         async function loginUser(rawPhone, password) {
             try {
