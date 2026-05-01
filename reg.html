@@ -165,54 +165,16 @@
         }
 
 async function submitRegister() {
-    const phone = document.getElementById('lockedPhone').value;
-    const name = document.getElementById('name').value.trim();
-    const password = document.getElementById('password').value;
-    const confirmPass = document.getElementById('confirmPassword').value;
-    const btn = document.getElementById('submitBtn');
-    const msg = document.getElementById('msg2');
+    // ... (获取输入框代码) ...
 
-    // 1. 基础格式验证
-    if (!name) { msg.textContent = '请输入姓名'; msg.className = 'message error'; return; }
-    if (!password) { msg.textContent = '请设置密码'; msg.className = 'message error'; return; }
-    if (password !== confirmPass) { msg.textContent = '两次密码不一致'; msg.className = 'message error'; return; }
+    // 1. 基础验证
+    if (!name) { /*...*/ return; }
+    // ... (密码验证) ...
 
     btn.disabled = true;
-    btn.textContent = '最终核对中...'; // 提示正在核对防重
-    msg.textContent = '';
-
-    // 2. 【关键】提交前最后一次防重检查
-    // 只查 reg Worker，不去查那几个 404 的法会接口了
-    let isValidToRegister = false;
-    
-    try {
-        // 调用 reg Worker 的 checkPhoneNumber 接口
-        const checkUrl = "https://reg.gealarm2012.workers.dev/?action=checkPhoneNumber&phone=" + phone;
-        
-        const checkResp = await fetch(checkUrl);
-        if (checkResp.ok) {
-            const data = await checkResp.json();
-            // 如果 GAS 返回 success: true，说明手机号存在且没密码（允许注册）
-            if (data && data.success === true) {
-                isValidToRegister = true;
-            }
-        }
-    } catch(e) { 
-        console.log("防重检查失败", e); 
-    }
-
-    // 如果防重检查没过（说明可能已经被注册了）
-    if (!isValidToRegister) {
-        msg.textContent = '该手机号已被注册，请直接登录';
-        msg.className = 'message error';
-        btn.disabled = false;
-        btn.textContent = '完成注册';
-        return;
-    }
-
-    // 3. 检查通过，正式提交保存
     btn.textContent = '正在保存...';
-    
+
+    // 2. 直接发给 Worker (注意这里必须是 Worker 的地址)
     try {
         const formData = new FormData();
         formData.append('action', 'registerWithPassword');
@@ -220,27 +182,22 @@ async function submitRegister() {
         formData.append('name', name);
         formData.append('password', password);
 
-        const response = await fetch(GAS_URL, {
+        // ⚠️ 注意：这里填你的 Worker 地址，不是 GAS 地址
+        const WORKER_URL = 'https://reg.gealarm2012.workers.dev/'; 
+
+        const response = await fetch(WORKER_URL, {
             method: 'POST',
             body: formData
         });
 
-        const result = await response.json();
+        const result = await response.json(); // 这里解析 JSON
 
         if (result.success) {
-            msg.textContent = '注册成功！即将跳转...';
-            msg.className = 'message success';
-            
-            localStorage.setItem('userInfo', JSON.stringify({
-                phone: phone,
-                name: name,
-                isLoggedIn: true
-            }));
-
-            setTimeout(() => {
-                window.location.href = 'user-center.html'; 
-            }, 1500);
+            // 成功跳转
+            msg.textContent = '注册成功！';
+            // ... (跳转逻辑) ...
         } else {
+            // 失败提示 (这里会显示 "该手机号已被注册")
             msg.textContent = result.error || '注册失败';
             msg.className = 'message error';
             btn.disabled = false;
@@ -248,7 +205,7 @@ async function submitRegister() {
         }
 
     } catch (err) {
-        msg.textContent = '网络错误';
+        msg.textContent = '网络错误: ' + err.message;
         msg.className = 'message error';
         btn.disabled = false;
         btn.textContent = '完成注册';
