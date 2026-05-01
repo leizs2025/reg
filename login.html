@@ -306,9 +306,18 @@ async function login() {
                 window.location.href = 'user-center.html'; // 跳转到用户中心
             }, 1000);
             
-        } else {
-            showMessage(result.error || '登录失败', 'error');
-        }
+} else {
+  // 根据 code 显示不同提示
+  if (result.code === 'USER_NOT_FOUND') {
+    showMessage('错误：该手机号尚未注册，请先注册', 'error');
+  } else if (result.code === 'INVALID_PASSWORD') {
+    showMessage('错误：密码不正确，请重试', 'error');
+  } else if (result.code === 'MISSING_CREDENTIALS') {
+    showMessage('请输入手机号和密码', 'error');
+  } else {
+    showMessage('登录失败: ' + result.error, 'error');
+  }
+}
     } catch (error) {
         showMessage('登录失败: ' + error.message, 'error');
     } finally {
