@@ -3,119 +3,289 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的法会 - 用户中心</title>
-    <!-- Bootstrap 5 CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>法会系统 - 仪表盘</title>
+    <!-- 引入 Font Awesome 图标库 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background-color: #fdfbf7; padding-bottom: 50px; }
-        .user-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px 0;
-            border-radius: 0 0 20px 20px;
+        /* 全局重置与背景 */
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            /* 深邃蓝紫渐变背景 */
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); 
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* 全局文字颜色设为深色，防止卡片内文字变白 */
+            color: #333; 
+            padding: 20px;
+        }
+
+        /* 核心卡片 */
+        .dashboard-card {
+            width: 100%;
+            max-width: 420px;
+            /* 浅灰白背景，保持原版 */
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        /* 头部样式优化 */
+        .header {
             margin-bottom: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        .event-card {
-            border-radius: 12px;
+        .header h1 {
+            /* --- 修改点：标题改为深黑色 --- */
+            color: #222; 
+            font-size: 1.8rem;
+            margin: 0 0 15px 0;
+            /* 去除文字阴影，黑字不需要 */
+            text-shadow: none; 
+        }
+
+        /* 用户信息容器 */
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* 姓名样式 */
+        .user-name {
+            /* --- 修改点：姓名改为深黑色 --- */
+            color: #333; 
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-shadow: none;
+        }
+
+        /* 手机号胶囊样式 */
+        .user-phone {
+            /* --- 修改点：手机号胶囊背景加深，文字变黑 --- */
+            background: #e0e7ff; /* 浅蓝灰底色，保护视力且清晰 */
+            border: 1px solid #c7d2fe;
+            padding: 6px 16px;
+            border-radius: 50px;
+            color: #1e293b; /* 深色文字 */
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-shadow: none;
+        }
+
+        /* 法会按钮网格 */
+        .events-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        /* 单个法会按钮样式 */
+        .event-btn {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: left;
+            padding: 15px;
             border: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            overflow: hidden;
-            height: 100%;
+            border-radius: 12px;
+            background: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #f0f0f0;
+            text-decoration: none;
+            color: #333; /* 确保按钮内文字为黑色 */
         }
-        .event-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+
+        .event-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: #6a11cb;
         }
-        .event-icon { font-size: 2.5rem; margin-bottom: 15px; display: block; }
-        .btn-event {
-            border-radius: 8px;
-            padding: 10px 20px;
+
+        /* 按钮图标颜色 */
+        .event-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+        .qifu .event-icon { background-color: #d1fae5; color: #047857; }
+        .chaodu .event-icon { background-color: #ede9fe; color: #7e22ce; }
+
+        .event-text { flex: 1; text-align: left; }
+        .event-title { font-weight: 600; font-size: 1.1rem; margin: 0 0 4px 0; }
+        .event-desc { font-size: 0.85rem; color: #666; margin: 0; }
+
+        /* 退出按钮 */
+        .logout-btn {
+            width: 100%;
+            padding: 12px;
+            background: #ff4d4f;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: background 0.3s;
             font-weight: 600;
         }
+        .logout-btn:hover { background: #d9363e; }
     </style>
 </head>
 <body>
-    <!-- 用户信息头部 -->
-    <div class="user-header">
-        <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2 class="mb-1">👋 您好，<span id="currentUserName"></span>！</h2>
-                    <p class="mb-0 text-white-50">欢迎回到祈福法会报名系统</p>
+    <!-- 仪表盘卡片 -->
+    <div class="dashboard-card">
+        <!-- 头部 -->
+        <div class="header">
+            <h1><i class="fas fa-leaf"></i> 欢迎回来</h1>
+            
+            <!-- 用户信息区域 -->
+            <div class="user-info">
+                <div class="user-name">
+                    <i class="fas fa-user-circle"></i> <span id="currentUserName">加载中...</span>
                 </div>
-                <button class="btn btn-outline-light btn-sm" onclick="logout()">退出登录</button>
+                <div class="user-phone">
+                    <i class="fas fa-mobile-alt"></i> <span id="currentUserPhone">...</span>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- 法会列表 -->
-    <div class="container">
-        <h3 class="text-center mb-4 fw-bold">请选择您要报名的法会</h3>
-        <div class="row g-4">
-            <!-- 法会卡片 1 -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card event-card p-4 text-center">
-                    <span class="event-icon">🌸</span>
-                    <h4 class="card-title mb-3">清明节祈福</h4>
-                    <p class="card-text text-muted mb-4">慎终追远，缅怀先人，为亡者祈福超度。</p>
-                    <a href="qingming-entry.html" class="btn btn-primary btn-event w-100">立即报名</a>
-                </div>
+        <!-- 内容区域 -->
+        <div class="content">
+            <div class="events-grid" id="eventsContainer">
+                <!-- 按钮将在这里动态加载 -->
+                <div style="color: #666;">探测中...</div>
             </div>
-            <!-- 法会卡片 2 -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card event-card p-4 text-center">
-                    <span class="event-icon">🏮</span>
-                    <h4 class="card-title mb-3">中元节祈福</h4>
-                    <p class="card-text text-muted mb-4">普渡众生，祭祀祖先，祈求风调雨顺。</p>
-                    <a href="zhongyuan-entry.html" class="btn btn-success btn-event w-100">立即报名</a>
-                </div>
-            </div>
-            <!-- 法会卡片 3 -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card event-card p-4 text-center">
-                    <span class="event-icon">📿</span>
-                    <h4 class="card-title mb-3">不空羂索法会</h4>
-                    <p class="card-text text-muted mb-4">消除业障，增长福慧，所求如愿。</p>
-                    <a href="bukong-entry.html" class="btn btn-warning btn-event w-100">立即报名</a>
-                </div>
-            </div>
-            <!-- 法会卡片 4 -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card event-card p-4 text-center">
-                    <span class="event-icon">🙏</span>
-                    <h4 class="card-title mb-3">感恩护法祈福</h4>
-                    <p class="card-text text-muted mb-4">感恩护法龙天护持，祈求平安吉祥。</p>
-                    <a href="hufa-entry.html" class="btn btn-info btn-event w-100">立即报名</a>
-                </div>
-            </div>
+
+            <!-- 退出按钮 -->
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> 退出登录
+            </button>
         </div>
     </div>
 
     <script>
-        // 页面加载时检查登录状态
-        document.addEventListener('DOMContentLoaded', function() {
+        // 配置所有法会
+        const EVENTS_CONFIG = [
+            {
+                id: "qifu",
+                name: "祈福法会",
+                icon: "fas fa-praying-hands",
+                desc: "查询/更新祈福名单",
+                checkUrl: "https://form.gealarm2012.workers.dev/admin-qifu?search=", 
+                page: "hpqifu.html" 
+            },
+            {
+                id: "chaodu",
+                name: "超度法会",
+                icon: "fas fa-book-open",
+                desc: "查询/更新超度名单",
+                checkUrl: "https://form.gealarm2012.workers.dev/admin-chaodu?search=", 
+                page: "hpchaodu.html" 
+            },
+           {
+                id: "taisui",
+                name: "安太岁光明灯",
+                icon: "fas fa-book-open",
+                desc: "查询/更新安太岁光明灯名单",
+                checkUrl: "https://lucky-cloud-f9c3.gealarm2012.workers.dev?search=", 
+                page: "hptaisui.html" 
+            },	
+        ];
+
+        document.addEventListener('DOMContentLoaded', async function() {
             const userInfoStr = localStorage.getItem('userInfo');
             if (!userInfoStr) {
-                // 未登录，强制跳转回登录页
+                alert('请先登录');
                 window.location.href = 'login.html';
                 return;
             }
-            
+
             const userInfo = JSON.parse(userInfoStr);
-            if (!userInfo.isLoggedIn) {
-                window.location.href = 'login.html';
-                return;
-            }
             
-            // 已登录，显示用户信息
-            document.getElementById('currentUserName').textContent = userInfo.name;
+            // 填充姓名和手机号
+            document.getElementById('currentUserName').textContent = userInfo.name || '用户';
+            document.getElementById('currentUserPhone').textContent = userInfo.phone;
+
+            const container = document.getElementById('eventsContainer');
+            let html = '';
+            let hasValidEvent = false;
+
+            // 探测所有法会
+            for (const event of EVENTS_CONFIG) {
+                try {
+                    const url = event.checkUrl + encodeURIComponent(userInfo.phone);
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    // 判断是否有权限
+                    let hasAccess = false;
+                    if (Array.isArray(data) && data.length > 0) hasAccess = true;
+                    if (!Array.isArray(data) && Object.keys(data).length > 0) hasAccess = true;
+
+                    if (hasAccess) {
+                        html += `
+                        <a href="${event.page}" class="event-btn ${event.id}">
+                            <div class="event-icon">
+                                <i class="${event.icon}"></i>
+                            </div>
+                            <div class="event-text">
+                                <p class="event-title">${event.name}</p>
+                                <p class="event-desc">已有记录，点击更新</p>
+                            </div>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                        `;
+                        hasValidEvent = true;
+                    }
+                } catch (error) {
+                    console.warn(`探测 ${event.name} 失败:`, error);
+                }
+            }
+
+            // 查无数据时的逻辑（新人报名）
+            if (!hasValidEvent) {
+                html = '<p class="text-center mb-3" style="color:#666;">未查询到您的报名记录，请选择法会进行报名：</p>';
+                
+                EVENTS_CONFIG.forEach(event => {
+                    html += `
+                    <a href="${event.page}" class="event-btn ${event.id}">
+                        <div class="event-icon">
+                            <i class="${event.icon}"></i>
+                        </div>
+                        <div class="event-text">
+                            <p class="event-title">${event.name}</p>
+                            <p class="event-desc">点击立即报名</p>
+                        </div>
+                        <i class="fas fa-plus-circle"></i>
+                    </a>
+                    `;
+                });
+            }
+
+            container.innerHTML = html;
         });
 
-        // 退出登录
         function logout() {
-            if(confirm('确定要退出登录吗？')) {
+            if (confirm('确定要退出吗？')) {
                 localStorage.removeItem('userInfo');
                 window.location.href = 'login.html';
             }
