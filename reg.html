@@ -165,16 +165,37 @@
         }
 
 async function submitRegister() {
-    // ... (获取输入框代码) ...
+    // 1. 获取元素
+    const phone = document.getElementById('lockedPhone').value;
+    const name = document.getElementById('name').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPass = document.getElementById('confirmPassword').value;
+    const btn = document.getElementById('submitBtn');
+    const msg = document.getElementById('msg2');
 
-    // 1. 基础验证
-    if (!name) { /*...*/ return; }
-    // ... (密码验证) ...
+    // 2. 基础验证 (修复了之前的语法错误)
+    if (!name) { 
+        msg.textContent = '请输入姓名'; 
+        msg.className = 'message error'; 
+        return; 
+    }
+    if (!password) { 
+        msg.textContent = '请设置密码'; 
+        msg.className = 'message error'; 
+        return; 
+    }
+    if (password !== confirmPass) { 
+        msg.textContent = '两次密码不一致'; 
+        msg.className = 'message error'; 
+        return; 
+    }
 
+    // 3. 锁定按钮
     btn.disabled = true;
     btn.textContent = '正在保存...';
+    msg.textContent = '';
 
-    // 2. 直接发给 Worker (注意这里必须是 Worker 的地址)
+    // 4. 提交给 Worker
     try {
         const formData = new FormData();
         formData.append('action', 'registerWithPassword');
@@ -182,22 +203,29 @@ async function submitRegister() {
         formData.append('name', name);
         formData.append('password', password);
 
-        // ⚠️ 注意：这里填你的 Worker 地址，不是 GAS 地址
-        const WORKER_URL = 'https://reg.gealarm2012.workers.dev/'; 
+        const WORKER_URL = 'https://reg.gealarm2012.workers.dev/';
 
         const response = await fetch(WORKER_URL, {
             method: 'POST',
             body: formData
         });
 
-        const result = await response.json(); // 这里解析 JSON
+        const result = await response.json();
 
         if (result.success) {
-            // 成功跳转
-            msg.textContent = '注册成功！';
-            // ... (跳转逻辑) ...
+            msg.textContent = '注册成功！即将跳转...';
+            msg.className = 'message success';
+            
+            localStorage.setItem('userInfo', JSON.stringify({
+                phone: phone,
+                name: name,
+                isLoggedIn: true
+            }));
+
+            setTimeout(() => {
+                window.location.href = 'user-center.html'; 
+            }, 1500);
         } else {
-            // 失败提示 (这里会显示 "该手机号已被注册")
             msg.textContent = result.error || '注册失败';
             msg.className = 'message error';
             btn.disabled = false;
