@@ -165,104 +165,59 @@
         }
 
         // 2. 提交注册 (先二次验证，再保存)
-async function submitRegister() {
-    const phone = document.getElementById('lockedPhone').value;
-    const name = document.getElementById('name').value.trim();
-    const password = document.getElementById('password').value;
-    const confirmPass = document.getElementById('confirmPassword').value;
-    const btn = document.getElementById('submitBtn');
-    const msg = document.getElementById('msg2');
+        async function submitRegister() {
+            const phone = document.getElementById('lockedPhone').value;
+            const name = document.getElementById('name').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+            const btn = document.getElementById('submitBtn');
+            const msg = document.getElementById('msg2');
 
-    // 确保手机号和密码都被视为字符串
-    const phoneStr = phone.toString();  // 确保是字符串
-    const passwordStr = password.toString(); // 确保是字符串
-    
-    // 1. 基础格式验证
-    if (!name) { 
-        msg.textContent = '请输入姓名'; 
-        msg.className = 'message error'; 
-        return; 
-    }
-    if (!password) { 
-        msg.textContent = '请设置密码'; 
-        msg.className = 'message error'; 
-        return; 
-    }
-    if (password !== confirmPass) { 
-        msg.textContent = '两次密码不一致'; 
-        msg.className = 'message error'; 
-        return; 
-    }
-
-    btn.disabled = true;
-    btn.textContent = '最终核对中...';
-    msg.textContent = '';
-
-    // 2. 【新增】提交前的二次验证
-    let isValidToRegister = false;
-    
-    try {
-         const checkResp = await fetch(VALIDATION_URLS[0] + phone);
-         if (checkResp.ok) {
-             const data = await checkResp.json();
-             if (data && (data.name || data.length > 0)) {
-                 isValidToRegister = true;
-             }
-         }
-    } catch(e) { console.log(e); }
-
-    if (!isValidToRegister) {
-        msg.textContent = '验证失效：该手机号可能已被注册或失去资格，请刷新重试';
-        msg.className = 'message error';
-        btn.disabled = false;
-        btn.textContent = '完成注册';
-        return;
-    }
-
-    // 3. 验证通过，发送给 GAS 保存
-    btn.textContent = '正在保存...';
-    
-    try {
-        const formData = new FormData();
-        formData.append('action', 'registerWithPassword');
-        formData.append('phone', phoneStr); // 使用字符串形式
-        formData.append('name', name);
-        formData.append('password', passwordStr); // 使用字符串形式
-
-        const response = await fetch(GAS_URL, {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            msg.textContent = '注册成功！即将跳转...';
-            msg.className = 'message success';
+            // 确保手机号和密码都被视为字符串
+            const phoneStr = phone.toString();  // 确保是字符串
+            const passwordStr = password.toString(); // 确保是字符串
             
-            localStorage.setItem('userInfo', JSON.stringify({
-                phone: phoneStr,
-                name: name,
-                isLoggedIn: true
-            }));
+            // 1. 基础格式验证
+            if (!name) { 
+                msg.textContent = '请输入姓名'; 
+                msg.className = 'message error'; 
+                return; 
+            }
+            if (!password) { 
+                msg.textContent = '请设置密码'; 
+                msg.className = 'message error'; 
+                return; 
+            }
+            if (password !== confirmPass) { 
+                msg.textContent = '两次密码不一致'; 
+                msg.className = 'message error'; 
+                return; 
+            }
 
-            setTimeout(() => {
-                window.location.href = 'user-center.html'; 
-            }, 1500);
-        } else {
-            msg.textContent = result.error || '注册失败';
-            msg.className = 'message error';
-            btn.disabled = false;
-            btn.textContent = '完成注册';
-        }
+            btn.disabled = true;
+            btn.textContent = '最终核对中...';
+            msg.textContent = '';
 
-    } catch (err) {
-        msg.textContent = '网络错误';
-        msg.className = 'message error';
-        btn.disabled = false;
-        btn.textContent = '完成注册';
-    }
-}
+            // 2. 【新增】提交前的二次验证
+            let isValidToRegister = false;
+            
+            try {
+                 const checkResp = await fetch(VALIDATION_URLS[0] + phone);
+                 if (checkResp.ok) {
+                     const data = await checkResp.json();
+                     if (data && (data.name || data.length > 0)) {
+                         isValidToRegister = true;
+                     }
+                 }
+            } catch(e) { console.log(e); }
+
+            if (!isValidToRegister) {
+                msg.textContent = '验证失效：该手机号可能已被注册或失去资格，请刷新重试';
+                msg.className = 'message error';
+                btn.disabled = false;
+                btn.textContent = '完成注册';
+                return;
+            }
 
             // 3. 验证通过，发送给 GAS 保存
             btn.textContent = '正在保存...';
@@ -270,9 +225,9 @@ async function submitRegister() {
             try {
                 const formData = new FormData();
                 formData.append('action', 'registerWithPassword');
-                formData.append('phone', phone);
+                formData.append('phone', phoneStr); // 使用字符串形式
                 formData.append('name', name);
-                formData.append('password', password);
+                formData.append('password', passwordStr); // 使用字符串形式
 
                 const response = await fetch(GAS_URL, {
                     method: 'POST',
@@ -285,9 +240,8 @@ async function submitRegister() {
                     msg.textContent = '注册成功！即将跳转...';
                     msg.className = 'message success';
                     
-                    // 保存登录态
                     localStorage.setItem('userInfo', JSON.stringify({
-                        phone: phone,
+                        phone: phoneStr,
                         name: name,
                         isLoggedIn: true
                     }));
