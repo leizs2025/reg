@@ -1,66 +1,207 @@
-// 获取所有用户数据
-function getAllUsers() {
-  try {
-    var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
-    var range = sheet.getDataRange();
-    var values = range.getValues();
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员后台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; min-height: 100vh; padding: 20px; }
+        .header { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .container { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-weight: 600; color: #2c3e50; }
+        tr:hover { background: #f8f9ff; }
+        .edit-btn { background: #3498db; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .edit-btn:hover { background: #2980b9; }
+        .save-btn { background: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .cancel-btn { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .input-edit { padding: 4px 8px; border: 1px solid #ddd; border-radius: 3px; font-size: 12px; width: 100px; }
+        .message { padding: 10px; margin: 10px 0; border-radius: 4px; text-align: center; }
+        .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .refresh-btn { background: #9b59b6; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-left: 10px; }
+        .refresh-btn:hover { background: #8e44ad; }
+        .loading { text-align: center; padding: 20px; color: #7f8c8d; }
+        .password-error { color: #e74c3c; font-size: 11px; margin-top: 2px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 管理员后台</h1>
+        <p>查看和管理用户注册记录</p>
+        <button class="refresh-btn" onclick="loadData()" id="refreshBtn">🔄 刷新数据</button>
+    </div>
     
-    var users = [];
-    // 假设第1行为标题，从第2行开始是数据
-    for (var i = 1; i < values.length; i++) {
-      if (values[i][0]) { // 如果手机号不为空
-        users.push({
-          phone: values[i][0],
-          name: values[i][1], 
-          password: values[i][2]
-        });
-      }
-    }
-    
-    return {success: true, data: users};
-  } catch (e) {
-    return {success: false, error: e.toString()};
-  }
-}
+    <div id="loading" class="loading">正在加载数据...</div>
+    <div id="tableContainer" style="display: none;"></div>
+    <div id="msg"></div>
 
-// 更新用户密码
-function updatePassword(data) {
-  try {
-    var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
-    var range = sheet.getDataRange();
-    var values = range.getValues();
-    
-    // 验证密码格式
-    if (!data.password.match(/^[a-zA-Z]/)) {
-      return {success: false, error: '密码必须以英文字母开头', code: 'INVALID_PASSWORD_FORMAT'};
-    }
-    
-    // 查找并更新
-    for (var i = 1; i < values.length; i++) {
-      if (values[i][0] == data.phone) { // 手机号匹配
-        sheet.getRange(i + 1, 3).setValue(data.password); // 更新密码列（第3列）
-        return {success: true, message: '密码更新成功'};
-      }
-    }
-    
-    return {success: false, error: '未找到该手机号的用户'};
-  } catch (e) {
-    return {success: false, error: e.toString()};
-  }
-}
-
-// 在doPost主函数中添加路由
-function doPost(e) {
-  var action = e.parameter.action;
-  
-  if (action === 'getAllUsers') {
-    return ContentService.createTextOutput(
-      JSON.stringify(getAllUsers())
-    ).setMimeType(ContentService.MimeType.JSON);
-  } else if (action === 'updatePassword') {
-    return ContentService.createTextOutput(
-      JSON.stringify(updatePassword(e.parameter))
-    ).setMimeType(ContentService.MimeType.JSON);
-  }
-  // ... 其他现有功能
-}
+    <script>
+        // 配置GAS后端URL
+        const GAS_URL = 'https://reg.gealarm2012.workers.dev';
+        
+        // 加载数据
+        async function loadData() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('tableContainer').style.display = 'none';
+            document.getElementById('msg').innerHTML = '';
+            
+            try {
+                const formData = new FormData();
+                formData.append('action', 'getAllUsers'); // 需要在GAS中实现此功能
+                
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderTable(result.data);
+                } else {
+                    showMessage(result.error || '加载失败', 'error');
+                }
+            } catch (err) {
+                showMessage('网络错误：' + err.message, 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+        
+        // 渲染表格
+        function renderTable(users) {
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>手机号</th>
+                            <th>姓名</th>
+                            <th>密码</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            users.forEach((user, index) => {
+                html += `
+                    <tr id="row-${index}">
+                        <td>${index + 1}</td>
+                        <td>${user.phone || ''}</td>
+                        <td>${user.name || ''}</td>
+                        <td id="pwd-display-${index}">${maskPassword(user.password)}</td>
+                        <td>
+                            <button class="edit-btn" onclick="editPassword(${index}, '${user.phone}', '${user.password}')">修改密码</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            document.getElementById('tableContainer').innerHTML = html;
+            document.getElementById('tableContainer').style.display = 'block';
+        }
+        
+        // 隐藏密码（只显示前3位和后2位）
+        function maskPassword(pwd) {
+            if (!pwd || pwd.length <= 5) return '******';
+            return pwd.substring(0, 3) + '***' + pwd.slice(-2);
+        }
+        
+        // 编辑密码
+        function editPassword(index, phone, currentPassword) {
+            const row = document.getElementById(`row-${index}`);
+            const pwdCell = document.getElementById(`pwd-display-${index}`);
+            
+            pwdCell.innerHTML = `
+                <input type="password" id="edit-pwd-${index}" class="input-edit" value="${currentPassword}" placeholder="新密码">
+                <div id="pwd-error-${index}" class="password-error"></div>
+                <br>
+                <button class="save-btn" onclick="savePassword(${index}, '${phone}')">保存</button>
+                <button class="cancel-btn" onclick="cancelEdit(${index}, '${currentPassword}')">取消</button>
+            `;
+            
+            // 添加实时验证
+            document.getElementById(`edit-pwd-${index}`).addEventListener('input', function() {
+                validatePasswordInEdit(index, this.value);
+            });
+        }
+        
+        // 验证编辑中的密码
+        function validatePasswordInEdit(index, password) {
+            const errorDiv = document.getElementById(`pwd-error-${index}`);
+            const startsWithLetterRegex = /^[a-zA-Z]/;
+            
+            if (!password) {
+                errorDiv.textContent = '';
+                return true;
+            }
+            
+            if (!startsWithLetterRegex.test(password)) {
+                errorDiv.textContent = '密码必须以字母开头';
+                return false;
+            } else {
+                errorDiv.textContent = '';
+                return true;
+            }
+        }
+        
+        // 保存密码
+        async function savePassword(index, phone) {
+            const newPassword = document.getElementById(`edit-pwd-${index}`).value;
+            
+            if (!validatePasswordInEdit(index, newPassword)) {
+                return;
+            }
+            
+            try {
+                const formData = new FormData();
+                formData.append('action', 'updatePassword');
+                formData.append('phone', phone);
+                formData.append('password', newPassword);
+                
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('密码更新成功', 'success');
+                    // 更新显示
+                    document.getElementById(`pwd-display-${index}`).textContent = maskPassword(newPassword);
+                } else {
+                    showMessage(result.error || '更新失败', 'error');
+                }
+            } catch (err) {
+                showMessage('网络错误：' + err.message, 'error');
+            }
+        }
+        
+        // 取消编辑
+        function cancelEdit(index, currentPassword) {
+            document.getElementById(`pwd-display-${index}`).textContent = maskPassword(currentPassword);
+        }
+        
+        // 显示消息
+        function showMessage(text, type) {
+            const msgDiv = document.getElementById('msg');
+            msgDiv.textContent = text;
+            msgDiv.className = `message ${type}`;
+            setTimeout(() => {
+                msgDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 页面加载时自动获取数据
+        window.onload = function() {
+            loadData();
+        };
+    </script>
+</body>
+</html>
