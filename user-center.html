@@ -180,6 +180,7 @@
         .qifu .event-icon { background-color: #d1fae5; color: #047857; }
         .chaodu .event-icon { background-color: #ede9fe; color: #7e22ce; }
         .taisui .event-icon { background-color: #fed7aa; color: #c2410c; }
+        .taisui-light .event-icon { background-color: #fef3c7; color: #d97706; }
 
         .event-text { flex: 1; text-align: left; }
         .event-title { font-weight: 600; font-size: 1.1rem; margin: 0 0 4px 0; transition: color 0.3s; }
@@ -207,6 +208,30 @@
         .tab-content.active {
             display: block;
         }
+        
+        /* 加载动画 */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .loading-spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -226,20 +251,24 @@
         <!-- 标签页切换 -->
         <div class="tabs">
             <div class="tab active" onclick="switchTab('registered')">已报名法会</div>
-            <div class="tab" onclick="switchTab('missing')">待补录法会</div>
+            <div class="tab" onclick="switchTab('missing')">未报名法会</div>
         </div>
 
         <!-- 已报名内容 -->
         <div id="registered" class="tab-content active">
             <div class="events-grid" id="registeredContainer">
-                <div style="color: #666; text-align: center;">探测中...</div>
+                <div class="loading">
+                    <div class="loading-spinner"></div> 探测中...
+                </div>
             </div>
         </div>
 
         <!-- 未报名内容 -->
         <div id="missing" class="tab-content">
             <div class="events-grid" id="missingContainer">
-                <div style="color: #666; text-align: center;">探测中...</div>
+                <div class="loading">
+                    <div class="loading-spinner"></div> 探测中...
+                </div>
             </div>
         </div>
 
@@ -270,105 +299,169 @@
             },
             {
                 id: "taisui",
-                name: "安太岁光明灯",
+                name: "安太岁/光明灯",
                 icon: "fas fa-bullseye",
-                desc: "已登记安太岁",
-                missingDesc: "尚未登记安太岁",
+                desc: "已登记安太岁/光明灯",
+                missingDesc: "尚未登记安太岁/光明灯",
                 checkUrl: "https://lucky-cloud-f9c3.gealarm2012.workers.dev?search=", 
                 page: "hptaisui.html" 
             }
         ];
 
-        let userData = {}; // 存储所有接口返回的数据
+  // 新增：太岁光明灯查询系统API
+const TAI_SUI_LIGHT_API = "https://script.google.com/macros/s/AKfycby4OfOpeID57yF-HcSl3CKODChlLPvgYH1TgZ02RXXkLO0YX9eRDbN6soSlKlaobvqhrg/exec?mode=all";
+const TAI_SUI_LIGHT_PAGE = "taisui-light-personal.html"; // 使用新的个人查询页面
 
-        document.addEventListener('DOMContentLoaded', async function() {
-            const userInfoStr = localStorage.getItem('userInfo');
-            if (!userInfoStr) {
-                alert('请先登录');
-                window.location.href = 'login.html';
-                return;
+let userData = {}; // 存储所有接口返回的数据
+
+document.addEventListener('DOMContentLoaded', async function() {
+    const userInfoStr = localStorage.getItem('userInfo');
+    if (!userInfoStr) {
+        alert('请先登录');
+        window.location.href = 'login.html';
+        return;
+    }
+
+    const userInfo = JSON.parse(userInfoStr);
+    document.getElementById('currentUserName').textContent = userInfo.name || '用户';
+    document.getElementById('currentUserPhone').textContent = userInfo.phone;
+
+    // 并发探测所有接口（包括新的太岁光明灯API）
+    const detectionPromises = [
+        ...EVENTS_CONFIG.map(async (event) => {
+            try {
+                const url = event.checkUrl + encodeURIComponent(userInfo.phone);
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                // 判断是否有数据
+                let hasData = false;
+                if (Array.isArray(data) && data.length > 0) hasData = true;
+                if (!Array.isArray(data) && typeof data === 'object' && Object.keys(data).length > 0) hasData = true;
+
+                return { eventId: event.id, hasData: hasData, rawData: data };
+            } catch (error) {
+                console.warn(`探测 ${event.name} 失败:`, error);
+                return { eventId: event.id, hasData: false };
             }
+        }),
+        // 新增：探测太岁光明灯API
+        detectTaiSuiLight(userInfo.phone)
+    ];
 
-            const userInfo = JSON.parse(userInfoStr);
-            document.getElementById('currentUserName').textContent = userInfo.name || '用户';
-            document.getElementById('currentUserPhone').textContent = userInfo.phone;
+    const results = await Promise.all(detectionPromises);
+    
+    // 将结果转换为 Map 方便查找
+    const resultMap = new Map(results.map(r => [r.eventId, r.hasData]));
+    
+    // 创建完整的事件配置列表（包含太岁光明灯 - 只有当用户有数据时才添加）
+    let allEvents = [...EVENTS_CONFIG];
+    
+    // 检查太岁光明灯API中是否有该用户的数据
+    if (resultMap.get('taisui-light')) {
+        allEvents.push({
+            id: "taisui-light",
+            name: "太岁光明灯排位查询",
+            icon: "fas fa-fire",
+            desc: "已登记太岁光明灯",
+            missingDesc: "尚未登记太岁光明灯",
+            checkUrl: "",
+            page: TAI_SUI_LIGHT_PAGE
+        });
+    }
 
-            // 并发探测所有接口
-            const detectionPromises = EVENTS_CONFIG.map(async (event) => {
-                try {
-                    const url = event.checkUrl + encodeURIComponent(userInfo.phone);
-                    const response = await fetch(url);
-                    const data = await response.json();
-                    
-                    // 判断是否有数据 (这里可以根据后端返回结构调整，例如 data.success 或 data.length)
-                    // 通用逻辑：非空数组或非空对象
-                    let hasData = false;
-                    if (Array.isArray(data) && data.length > 0) hasData = true;
-                    if (!Array.isArray(data) && Object.keys(data).length > 0) hasData = true;
+    // 分离已报名和未报名
+    const registered = [];
+    const missing = [];
 
-                    return { eventId: event.id, hasData: hasData, rawData: data };
-                } catch (error) {
-                    console.warn(`探测 ${event.name} 失败:`, error);
-                    return { eventId: event.id, hasData: false };
-                }
-            });
+    allEvents.forEach(event => {
+        const hasData = resultMap.get(event.id);
+        if (hasData) {
+            registered.push(event);
+        } else {
+            missing.push(event);
+        }
+    });
 
-            const results = await Promise.all(detectionPromises);
-            
-            // 将结果转换为 Map 方便查找
-            const resultMap = new Map(results.map(r => [r.eventId, r.hasData]));
+    // 渲染列表
+    renderList(registered, 'registeredContainer', true);
+    renderList(missing, 'missingContainer', false);
 
-            // 分离已报名和未报名
-            const registered = EVENTS_CONFIG.filter(event => resultMap.get(event.id));
-            const missing = EVENTS_CONFIG.filter(event => !resultMap.get(event.id));
+    // 如果没有未报名的，隐藏"待补录"标签页
+    if (missing.length === 0) {
+        document.querySelector('.tab[onclick="switchTab(\'missing\')"]').style.display = 'none';
+        if (document.querySelector('#missing').classList.contains('active')) {
+            switchTab('registered');
+        }
+    }
+});
 
-            // 渲染列表
-            renderList(registered, 'registeredContainer', true);
-            renderList(missing, 'missingContainer', false);
-
-            // 如果没有未报名的，隐藏“待补录”标签页
-            if (missing.length === 0) {
-                document.querySelector('.tab[onclick="switchTab(\'missing\')"]').style.display = 'none';
-                if (document.querySelector('#missing').classList.contains('active')) {
-                    switchTab('registered');
-                }
-            }
+// 探测太岁光明灯数据
+async function detectTaiSuiLight(phone) {
+    try {
+        const response = await fetch(TAI_SUI_LIGHT_API);
+        const data = await response.json();
+        
+        // 检查是否有该用户的记录
+        const hasRecord = data.some(record => {
+            const cleanedPhone = extractMobileNumber(record.phone);
+            const userPhone = extractMobileNumber(phone);
+            return cleanedPhone === userPhone || cleanedPhone.slice(-7) === userPhone.slice(-7);
         });
 
-        function renderList(events, containerId, isRegistered) {
-            const container = document.getElementById(containerId);
-            if (events.length === 0) {
-                container.innerHTML = '<div style="color: #666; text-align: center; padding: 20px;">暂无数据</div>';
-                return;
-            }
+        return { eventId: 'taisui-light', hasData: hasRecord, rawData: data };
+    } catch (error) {
+        console.warn('探测太岁光明灯失败:', error);
+        return { eventId: 'taisui-light', hasData: false };
+    }
+}
 
-            let html = '';
-            events.forEach(event => {
-                const statusClass = isRegistered ? 'registered' : 'missing';
-                const iconClass = isRegistered ? 'fa-check-circle' : 'fa-plus-circle';
-                const btnText = isRegistered ? '查看详情' : '立即补录';
-                const desc = isRegistered ? event.desc : event.missingDesc;
+// 从太岁光明灯API中提取手机号的辅助函数（复用原代码）
+function extractMobileNumber(phone) {
+    if (!phone) return '';
+    const raw = phone.toString().trim()
+        .replace(/^'/, '')        // 去除撇号
+        .replace(/\s+/g, '')      // 去空格
+        .replace(/\+\d+$/, '')    // 去除尾部 +数字
+        .replace(/[^\d]/g, '');   // 去除非数字字符
 
-                html += `
-                <a href="${event.page}" class="event-btn ${statusClass} ${event.id}">
-                    <div class="event-icon">
-                        <i class="${event.icon}"></i>
-                    </div>
-                    <div class="event-text">
-                        <p class="event-title">${event.name}</p>
-                        <p class="event-desc"><i class="fas ${iconClass}"></i> ${desc}</p>
-                    </div>
-                    <i class="fas fa-arrow-right"></i>
-                </a>
-                `;
-            });
-            container.innerHTML = html;
-        }
+    const match = raw.match(/(\d{10})$/);  // 提取最后10位
+    return match ? match[1] : raw;
+}
+
+function renderList(events, containerId, isRegistered) {
+    const container = document.getElementById(containerId);
+    if (events.length === 0) {
+        container.innerHTML = '<div style="color: #666; text-align: center; padding: 20px;">暂无数据</div>';
+        return;
+    }
+
+    let html = '';
+    events.forEach(event => {
+        const statusClass = isRegistered ? 'registered' : 'missing';
+        const iconClass = isRegistered ? 'fa-check-circle' : 'fa-plus-circle';
+        
+        const desc = isRegistered ? event.desc : event.missingDesc;
+        html += `
+        <a href="${event.page}" class="event-btn ${statusClass} ${event.id}">
+            <div class="event-icon">
+                <i class="${event.icon}"></i>
+            </div>
+            <div class="event-text">
+                <p class="event-title">${event.name}</p>
+                <p class="event-desc"><i class="fas ${iconClass}"></i> ${desc}</p>
+            </div>
+            <i class="fas fa-arrow-right"></i>
+        </a>
+        `;
+    });
+    container.innerHTML = html;
+}
 
         function switchTab(tabName) {
             // 切换 Tab 样式
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab[onclick="switchTab(\'${tabName}\')"]').forEach(tab => tab.classList.add('active'));
+            document.querySelectorAll(`.tab[onclick="switchTab('${tabName}')"]`).forEach(tab => tab.classList.add('active'));
             
             // 切换内容显示
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
