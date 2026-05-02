@@ -50,6 +50,7 @@
         .input-group {
             margin-bottom: 20px;
             text-align: left;
+            position: relative;
         }
 
         .input-group label {
@@ -74,6 +75,24 @@
             outline: none;
             border-color: #3498db;
             box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        /* 密码显示/隐藏按钮 */
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 42px; /* 对应label的高度 */
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #7f8c8d;
+            padding: 5px;
+            z-index: 1;
+        }
+
+        .password-toggle:hover {
+            color: #3498db;
         }
 
         .login-btn, .register-btn {
@@ -216,6 +235,9 @@
         <div class="input-group">
             <label for="password">密码</label>
             <input type="password" id="password" placeholder="请输入密码">
+            <button type="button" class="password-toggle" id="togglePassword" onclick="togglePasswordVisibility()">
+                👁️
+            </button>
         </div>
         
         <button id="loginBtn" class="login-btn" onclick="login()">登录</button>
@@ -275,6 +297,20 @@
         } catch (error) {
             console.error('Worker请求错误:', error);
             throw error;
+        }
+    }
+
+    // 切换密码可见性
+    function togglePasswordVisibility() {
+        const passwordInput = document.getElementById('password');
+        const toggleButton = document.getElementById('togglePassword');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleButton.textContent = '🙈';
+        } else {
+            passwordInput.type = 'password';
+            toggleButton.textContent = '👁️';
         }
     }
 
