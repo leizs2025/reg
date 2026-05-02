@@ -14,11 +14,8 @@
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
         th { background: #f8f9fa; font-weight: 600; color: #2c3e50; }
         tr:hover { background: #f8f9ff; }
-        .edit-btn { background: #3498db; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .edit-btn:hover { background: #2980b9; }
-        .save-btn { background: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .cancel-btn { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .input-edit { padding: 4px 8px; border: 1px solid #ddd; border-radius: 3px; font-size: 12px; width: 100px; }
+        .reset-btn { background: #e67e22; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .reset-btn:hover { background: #d35400; }
         .input-admin { padding: 10px; border: 1px solid #ddd; border-radius: 4px; width: 100%; margin-bottom: 10px; }
         .message { padding: 10px; margin: 10px 0; border-radius: 4px; text-align: center; }
         .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
@@ -63,6 +60,7 @@
         // 配置GAS后端URL
         const GAS_URL = 'https://reg.gealarm2012.workers.dev';
         let adminToken = null; // 存储管理员验证状态
+        const TEMP_PASSWORD = 'Temp123456'; // 固定的临时密码
         
         // 管理员登录
         async function adminLogin() {
@@ -171,7 +169,7 @@
             
             // 过滤掉标题行数据，只显示真正的用户数据
             const filteredUsers = users.filter(user => {
-                // 排除标题行（如果第一个字段是'Phone'则认为是标题行）
+                // 排除标题行（如果第一个字段是'Phone'或'phone'则认为是标题行）
                 return user.phone !== 'Phone' && user.phone !== 'phone';
             });
             
@@ -189,7 +187,7 @@
                         <td>${formatDate(user.timestamp) || '-'}</td>
                         <td><span class="status-badge ${statusClass}">${status}</span></td>
                         <td>
-                            <button class="edit-btn" onclick="editPassword(${index}, '${user.phone}', '${user.password}')">修改密码</button>
+                            <button class="reset-btn" onclick="resetPassword('${user.phone}')">重置密码</button>
                         </td>
                     </tr>
                 `;
@@ -214,49 +212,9 @@
             return pwd.substring(0, 3) + '***' + pwd.slice(-2);
         }
         
-        // 编辑密码
-        function editPassword(index, phone, currentPassword) {
-            const row = document.getElementById(`row-${index}`);
-            const pwdCell = document.getElementById(`pwd-display-${index}`);
-            
-            pwdCell.innerHTML = `
-                <input type="password" id="edit-pwd-${index}" class="input-edit" value="${currentPassword}" placeholder="新密码">
-                <div id="pwd-error-${index}" class="password-error"></div>
-                <br>
-                <button class="save-btn" onclick="savePassword(${index}, '${phone}')">保存</button>
-                <button class="cancel-btn" onclick="cancelEdit(${index}, '${currentPassword}')">取消</button>
-            `;
-            
-            // 添加实时验证
-            document.getElementById(`edit-pwd-${index}`).addEventListener('input', function() {
-                validatePasswordInEdit(index, this.value);
-            });
-        }
-        
-        // 验证编辑中的密码
-        function validatePasswordInEdit(index, password) {
-            const errorDiv = document.getElementById(`pwd-error-${index}`);
-            const startsWithLetterRegex = /^[a-zA-Z]/;
-            
-            if (!password) {
-                errorDiv.textContent = '';
-                return true;
-            }
-            
-            if (!startsWithLetterRegex.test(password)) {
-                errorDiv.textContent = '密码必须以字母开头';
-                return false;
-            } else {
-                errorDiv.textContent = '';
-                return true;
-            }
-        }
-        
-        // 保存密码
-        async function savePassword(index, phone) {
-            const newPassword = document.getElementById(`edit-pwd-${index}`).value;
-            
-            if (!validatePasswordInEdit(index, newPassword)) {
+        // 重置密码
+        async function resetPassword(phone) {
+            if (!confirm(`确定要将用户 ${phone} 的密码重置为临时密码吗？\n\n临时密码：${TEMP_PASSWORD}\n\n用户下次登录时需强制更改密码。`)) {
                 return;
             }
             
@@ -267,9 +225,9 @@
             
             try {
                 const formData = new FormData();
-                formData.append('action', 'updatePassword');
+                formData.append('action', 'resetPassword'); // 使用新的重置动作
                 formData.append('phone', phone);
-                formData.append('password', newPassword);
+                formData.append('password', TEMP_PASSWORD); // 固定的临时密码
                 formData.append('adminKey', adminToken); // 发送管理员验证
                 
                 const response = await fetch(GAS_URL, {
@@ -280,22 +238,15 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    showMessage('密码更新成功，用户下次登录需强制更改', 'success');
-                    // 更新显示
-                    document.getElementById(`pwd-display-${index}`).textContent = maskPassword(newPassword);
-                    // 重新加载数据以更新状态显示
+                    showMessage('密码重置成功，用户下次登录需强制更改', 'success');
+                    // 重新加载数据以更新显示
                     loadData();
                 } else {
-                    showMessage(result.error || '更新失败', 'error');
+                    showMessage(result.error || '重置失败', 'error');
                 }
             } catch (err) {
                 showMessage('网络错误：' + err.message, 'error');
             }
-        }
-        
-        // 取消编辑
-        function cancelEdit(index, currentPassword) {
-            document.getElementById(`pwd-display-${index}`).textContent = maskPassword(currentPassword);
         }
         
         // 显示消息
