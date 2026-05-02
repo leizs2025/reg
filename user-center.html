@@ -18,7 +18,7 @@
 
         .dashboard-card {
             width: 100%;
-            max-width: 520px; /* 宽一点以便容纳两列 */
+            max-width: 520px;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 20px;
@@ -36,6 +36,23 @@
             font-size: 1.8rem;
             margin: 0 0 15px 0;
             text-shadow: none;
+        }
+        
+        .greeting-section {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .time-greeting {
+            color: #6a11cb;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .personal-greeting {
+            color: #2575fc;
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 10px;
         }
 
         .user-info {
@@ -86,12 +103,36 @@
             transition: 0.2s;
             color: #666;
             font-size: 0.9rem;
+            text-align: center;
+            min-width: 70px;
         }
         .tab.active {
             background: white;
             color: #2575fc;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+        
+        /* 标签页标题多行显示 */
+        .tab .multi-line {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+        .tab .line1 {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .tab .line2 {
+            font-size: 0.7rem;
+            color: #333;
+            margin-top: 2px;
+        }
+
+     /* 选中状态时，两行都用蓝色（保持视觉统一） */
+    .tab.active .line1,
+    .tab.active .line2 {
+        color: #2575fc;
+    }       
 
         /* 按钮样式增强 */
         .events-grid {
@@ -326,6 +367,12 @@
     <div class="dashboard-card">
         <div class="header">
             <h1><i class="fas fa-leaf"></i> 个人中心</h1>
+            
+            <div class="greeting-section">
+                <div class="time-greeting" id="timeGreeting">早上好！</div>
+                <div class="personal-greeting" id="personalGreeting">欢迎回来！</div>
+            </div>
+            
             <div class="user-info">
                 <div class="user-name">
                     <i class="fas fa-user-circle"></i> <span id="currentUserName">加载中...</span>
@@ -338,10 +385,30 @@
 
         <!-- 标签页切换 -->
         <div class="tabs">
-            <div class="tab active" onclick="switchTab('registered')">已报名法会</div>
-            <div class="tab" onclick="switchTab('missing')">其他法会</div>
-            <div class="tab" onclick="switchTab('rankings')">太岁/光明灯编号</div>
-            <div class="tab" onclick="switchTab('ancestral')">牌位/福位查询</div>
+            <div class="tab active" onclick="switchTab('registered')">
+                <div class="multi-line">
+                    <span class="line1">已报名</span>
+                    <span class="line2">法会</span>
+                </div>
+            </div>
+            <div class="tab" onclick="switchTab('missing')">
+                <div class="multi-line">
+                    <span class="line1">其他</span>
+                    <span class="line2">法会</span>
+                </div>
+            </div>
+            <div class="tab" onclick="switchTab('rankings')">
+                <div class="multi-line">
+                    <span class="line1">太岁/光明灯</span>
+                    <span class="line2">编号</span>
+                </div>
+            </div>
+            <div class="tab" onclick="switchTab('ancestral')">
+                <div class="multi-line">
+                    <span class="line1">牌位/福位</span>
+                    <span class="line2">查询</span>
+                </div>
+            </div>
         </div>
 
         <!-- 已报名内容 -->
@@ -388,12 +455,49 @@
     </div>
 
     <script>
+        // 获取问候语
+        function getTimeGreeting() {
+            const hour = new Date().getHours();
+            let greeting = '';
+            if (hour >= 5 && hour < 12) {
+                greeting = '🌅 早上好！';
+            } else if (hour >= 12 && hour < 14) {
+                greeting = '☀️ 中午好！';
+            } else if (hour >= 14 && hour < 18) {
+                greeting = '🌤️ 下午好！';
+            } else if (hour >= 18 && hour < 22) {
+                greeting = '🌙 晚上好！';
+            } else {
+                greeting = '🌃 夜深了！';
+            }
+            return greeting;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置问候语
+            document.getElementById('timeGreeting').textContent = getTimeGreeting();
+            document.getElementById('personalGreeting').textContent = '欢迎回来！';
+
+            const userInfoStr = localStorage.getItem('userInfo');
+            if (!userInfoStr) {
+                alert('请先登录');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const userInfo = JSON.parse(userInfoStr);
+            document.getElementById('currentUserName').textContent = userInfo.name || '用户';
+            document.getElementById('currentUserPhone').textContent = userInfo.phone;
+
+            // 其他原有代码...
+        });
+
         const EVENTS_CONFIG = [
             {
                 id: "qifu",
                 name: "祈福法会",
                 icon: "fas fa-praying-hands",
-                desc: "已报名祈福信息",
+                desc: "已登记祈福信息",
                 missingDesc: "尚未登记祈福名单",
                 checkUrl: "https://form.gealarm2012.workers.dev/admin-qifu?search=", 
                 page: "hpqifu.html" 
@@ -402,16 +506,16 @@
                 id: "chaodu",
                 name: "超度法会",
                 icon: "fas fa-book-open",
-                desc: "已报名超度信息",
+                desc: "已登记超度信息",
                 missingDesc: "尚未登记超度名单",
                 checkUrl: "https://form.gealarm2012.workers.dev/admin-chaodu?search=", 
                 page: "hpchaodu.html" 
             },
             {
                 id: "taisui",
-                name: "安太岁/光明灯",
+                name: "安太岁",
                 icon: "fas fa-bullseye",
-                desc: "已报名安太岁/光明灯",
+                desc: "已登记安太岁",
                 missingDesc: "尚未登记安太岁",
                 checkUrl: "https://lucky-cloud-f9c3.gealarm2012.workers.dev?search=", 
                 page: "hptaisui.html" 
@@ -479,6 +583,10 @@
         }
 
         document.addEventListener('DOMContentLoaded', async function() {
+            // 设置问候语
+            document.getElementById('timeGreeting').textContent = getTimeGreeting();
+            document.getElementById('personalGreeting').textContent = '欢迎回来！';
+
             const userInfoStr = localStorage.getItem('userInfo');
             if (!userInfoStr) {
                 alert('请先登录');
