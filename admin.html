@@ -7,6 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; min-height: 100vh; padding: 20px; }
+        .login-container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 400px; margin: 50px auto; }
         .header { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .container { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
@@ -18,6 +19,7 @@
         .save-btn { background: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
         .cancel-btn { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
         .input-edit { padding: 4px 8px; border: 1px solid #ddd; border-radius: 3px; font-size: 12px; width: 100px; }
+        .input-admin { padding: 10px; border: 1px solid #ddd; border-radius: 4px; width: 100%; margin-bottom: 10px; }
         .message { padding: 10px; margin: 10px 0; border-radius: 4px; text-align: center; }
         .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
@@ -25,32 +27,107 @@
         .refresh-btn:hover { background: #8e44ad; }
         .loading { text-align: center; padding: 20px; color: #7f8c8d; }
         .password-error { color: #e74c3c; font-size: 11px; margin-top: 2px; }
+        .admin-panel { display: none; }
+        .logout-btn { background: #e67e22; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; float: right; }
+        .logout-btn:hover { background: #d35400; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>📋 管理员后台</h1>
-        <p>查看和管理用户注册记录</p>
-        <button class="refresh-btn" onclick="loadData()" id="refreshBtn">🔄 刷新数据</button>
+    <!-- 管理员登录界面 -->
+    <div id="loginContainer" class="login-container">
+        <h2>🔐 管理员登录</h2>
+        <p>请输入管理员密码</p>
+        <input type="password" id="adminPassword" class="input-admin" placeholder="管理员密码">
+        <button class="refresh-btn" onclick="adminLogin()">登录</button>
+        <div id="loginMsg" class="message" style="display: none;"></div>
     </div>
     
-    <div id="loading" class="loading">正在加载数据...</div>
-    <div id="tableContainer" style="display: none;"></div>
-    <div id="msg"></div>
+    <!-- 管理员面板 -->
+    <div id="adminPanel" class="admin-panel">
+        <div class="header">
+            <h1>📋 管理员后台</h1>
+            <p>查看和管理用户注册记录</p>
+            <button class="logout-btn" onclick="logout()">退出登录</button>
+            <button class="refresh-btn" onclick="loadData()" id="refreshBtn">🔄 刷新数据</button>
+        </div>
+        
+        <div id="loading" class="loading">正在加载数据...</div>
+        <div id="tableContainer" style="display: none;"></div>
+        <div id="msg"></div>
+    </div>
 
     <script>
         // 配置GAS后端URL
         const GAS_URL = 'https://reg.gealarm2012.workers.dev';
+        let adminToken = null; // 存储管理员验证状态
+        
+        // 管理员登录
+        async function adminLogin() {
+            const password = document.getElementById('adminPassword').value;
+            if (!password) {
+                showLoginMessage('请输入管理员密码', 'error');
+                return;
+            }
+            
+            try {
+                const formData = new FormData();
+                formData.append('action', 'adminLogin');
+                formData.append('adminKey', password);
+                
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    adminToken = password; // 简单存储验证状态
+                    document.getElementById('loginContainer').style.display = 'none';
+                    document.getElementById('adminPanel').style.display = 'block';
+                    loadData(); // 登录成功后加载数据
+                } else {
+                    showLoginMessage(result.error || '登录失败', 'error');
+                }
+            } catch (err) {
+                showLoginMessage('网络错误：' + err.message, 'error');
+            }
+        }
+        
+        // 退出登录
+        function logout() {
+            adminToken = null;
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('adminPassword').value = '';
+        }
+        
+        // 显示登录消息
+        function showLoginMessage(text, type) {
+            const msgDiv = document.getElementById('loginMsg');
+            msgDiv.textContent = text;
+            msgDiv.className = `message ${type}`;
+            msgDiv.style.display = 'block';
+            setTimeout(() => {
+                msgDiv.style.display = 'none';
+            }, 3000);
+        }
         
         // 加载数据
         async function loadData() {
+            if (!adminToken) {
+                showLoginMessage('请先登录', 'error');
+                return;
+            }
+            
             document.getElementById('loading').style.display = 'block';
             document.getElementById('tableContainer').style.display = 'none';
             document.getElementById('msg').innerHTML = '';
             
             try {
                 const formData = new FormData();
-                formData.append('action', 'getAllUsers'); // 需要在GAS中实现此功能
+                formData.append('action', 'getAllUsers');
+                formData.append('adminKey', adminToken); // 发送管理员验证
                 
                 const response = await fetch(GAS_URL, {
                     method: 'POST',
@@ -81,6 +158,8 @@
                             <th>手机号</th>
                             <th>姓名</th>
                             <th>密码</th>
+                            <th>注册时间</th>
+                            <th>状态</th>
                             <th>操作</th>
                         </tr>
                     </thead>
@@ -88,12 +167,18 @@
             `;
             
             users.forEach((user, index) => {
+                const maskedPwd = maskPassword(user.password);
+                const status = user.flags && user.flags.includes('FORCE_CHANGE') ? '需更改密码' : '正常';
+                const statusClass = user.flags && user.flags.includes('FORCE_CHANGE') ? 'status-pending' : 'status-normal';
+                
                 html += `
                     <tr id="row-${index}">
                         <td>${index + 1}</td>
                         <td>${user.phone || ''}</td>
                         <td>${user.name || ''}</td>
-                        <td id="pwd-display-${index}">${maskPassword(user.password)}</td>
+                        <td id="pwd-display-${index}">${maskedPwd}</td>
+                        <td>${formatDate(user.timestamp) || '-'}</td>
+                        <td><span class="status-badge ${statusClass}">${status}</span></td>
                         <td>
                             <button class="edit-btn" onclick="editPassword(${index}, '${user.phone}', '${user.password}')">修改密码</button>
                         </td>
@@ -104,6 +189,14 @@
             html += '</tbody></table>';
             document.getElementById('tableContainer').innerHTML = html;
             document.getElementById('tableContainer').style.display = 'block';
+        }
+        
+        // 格式化日期
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString; // 如果不是有效日期，返回原值
+            return date.toLocaleString('zh-CN');
         }
         
         // 隐藏密码（只显示前3位和后2位）
@@ -158,11 +251,17 @@
                 return;
             }
             
+            if (!adminToken) {
+                showMessage('请先登录', 'error');
+                return;
+            }
+            
             try {
                 const formData = new FormData();
                 formData.append('action', 'updatePassword');
                 formData.append('phone', phone);
                 formData.append('password', newPassword);
+                formData.append('adminKey', adminToken); // 发送管理员验证
                 
                 const response = await fetch(GAS_URL, {
                     method: 'POST',
@@ -172,9 +271,11 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    showMessage('密码更新成功', 'success');
+                    showMessage('密码更新成功，用户下次登录需强制更改', 'success');
                     // 更新显示
                     document.getElementById(`pwd-display-${index}`).textContent = maskPassword(newPassword);
+                    // 重新加载数据以更新状态显示
+                    loadData();
                 } else {
                     showMessage(result.error || '更新失败', 'error');
                 }
@@ -198,10 +299,12 @@
             }, 3000);
         }
         
-        // 页面加载时自动获取数据
-        window.onload = function() {
-            loadData();
-        };
+        // 回车键登录
+        document.getElementById('adminPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                adminLogin();
+            }
+        });
     </script>
 </body>
 </html>
