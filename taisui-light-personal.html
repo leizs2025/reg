@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>法会系统 - 个人中心</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .dashboard-card {
+            width: 100%;
+            max-width: 520px; /* 宽一点以便容纳两列 */
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #222;
+            font-size: 1.8rem;
+            margin: 0 0 15px 0;
+            text-shadow: none;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .user-name {
+            color: #333;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-shadow: none;
+        }
+        .user-phone {
+            background: #e0e7ff;
+            border: 1px solid #c7d2fe;
+            padding: 6px 16px;
+            border-radius: 50px;
+            color: #1e293b;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-shadow: none;
+        }
+
+        /* 标签页样式 */
+        .tabs {
+            display: flex;
+            background: #f1f3f5;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+            justify-content: center;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .tab {
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
+            color: #666;
+        }
+        .tab.active {
+            background: white;
+            color: #2575fc;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* 按钮样式增强 */
+        .events-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .event-btn {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: left;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #f0f0f0;
+            text-decoration: none;
+            color: #333;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .event-btn::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background: #6a11cb;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .event-btn:hover::before {
+            opacity: 1;
+        }
+
+        /* 已报名状态：绿色系 */
+        .registered .event-btn {
+            border-left: 5px solid #10b981; /* 左侧绿条 */
+            background: #f0fdfa;
+            color: #065f46;
+        }
+        .registered .event-icon {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .registered .event-title {
+            color: #065f46;
+        }
+
+        /* 未报名状态：灰色系带加号 */
+        .missing .event-btn {
+            border-left: 5px solid #9ca3af; /* 左侧灰条 */
+            background: #f9fafb;
+            color: #4b5563;
+        }
+        .missing .event-btn:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+        .missing .event-icon {
+            background: #e5e7eb;
+            color: #4b5563;
+        }
+        .missing .event-title {
+            color: #4b5563;
+        }
+
+        .event-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .qifu .event-icon { background-color: #d1fae5; color: #047857; }
+        .chaodu .event-icon { background-color: #ede9fe; color: #7e22ce; }
+        .taisui .event-icon { background-color: #fed7aa; color: #c2410c; }
+        .taisui-light .event-icon { background-color: #fef3c7; color: #d97706; }
+
+        .event-text { flex: 1; text-align: left; }
+        .event-title { font-weight: 600; font-size: 1.1rem; margin: 0 0 4px 0; transition: color 0.3s; }
+        .event-desc { font-size: 0.85rem; color: #666; margin: 0; display: flex; align-items: center; gap: 4px; }
+
+        .logout-btn {
+            width: 100%;
+            padding: 12px;
+            background: #ff4d4f;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: background 0.3s;
+            font-weight: 600;
+        }
+        .logout-btn:hover { background: #d9363e; }
+
+        /* 内容区域 */
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* 加载动画 */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .loading-spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-card">
+        <div class="header">
+            <h1><i class="fas fa-leaf"></i> 个人中心</h1>
+            <div class="user-info">
+                <div class="user-name">
+                    <i class="fas fa-user-circle"></i> <span id="currentUserName">加载中...</span>
+                </div>
+                <div class="user-phone">
+                    <i class="fas fa-mobile-alt"></i> <span id="currentUserPhone">...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 标签页切换 -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('registered')">已报名法会</div>
+            <div class="tab" onclick="switchTab('missing')">待补录法会</div>
+        </div>
+
+        <!-- 已报名内容 -->
+        <div id="registered" class="tab-content active">
+            <div class="events-grid" id="registeredContainer">
+                <div class="loading">
+                    <div class="loading-spinner"></div> 探测中...
+                </div>
+            </div>
+        </div>
+
+        <!-- 未报名内容 -->
+        <div id="missing" class="tab-content">
+            <div class="events-grid" id="missingContainer">
+                <div class="loading">
+                    <div class="loading-spinner"></div> 探测中...
+                </div>
+            </div>
+        </div>
+
+        <button class="logout-btn" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> 退出登录
+        </button>
+    </div>
+
+    <script>
+        const EVENTS_CONFIG = [
+            {
+                id: "qifu",
+                name: "祈福法会",
+                icon: "fas fa-praying-hands",
+                desc: "已登记祈福信息",
+                missingDesc: "尚未登记祈福名单",
+                checkUrl: "https://form.gealarm2012.workers.dev/admin-qifu?search=", 
+                page: "hpqifu.html" 
+            },
+            {
+                id: "chaodu",
+                name: "超度法会",
+                icon: "fas fa-book-open",
+                desc: "已登记超度信息",
+                missingDesc: "尚未登记超度名单",
+                checkUrl: "https://form.gealarm2012.workers.dev/admin-chaodu?search=", 
+                page: "hpchaodu.html" 
+            },
+            {
+                id: "taisui",
+                name: "安太岁",
+                icon: "fas fa-bullseye",
+                desc: "已登记安太岁",
+                missingDesc: "尚未登记安太岁",
+                checkUrl: "https://lucky-cloud-f9c3.gealarm2012.workers.dev?search=", 
+                page: "hptaisui.html" 
+            }
+        ];
+
+        // 新增：太岁光明灯查询系统API
+        const TAI_SUI_LIGHT_API = "https://script.google.com/macros/s/AKfycby4OfOpeID57yF-HcSl3CKODChlLPvgYH1TgZ02RXXkLO0YX9eRDbN6soSlKlaobvqhrg/exec?mode=all";
+        const TAI_SUI_LIGHT_PAGE = "taisui-light-personal.html"; // 新的个人查询页面
+
+        let userData = {}; // 存储所有接口返回的数据
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            const userInfoStr = localStorage.getItem('userInfo');
+            if (!userInfoStr) {
+                alert('请先登录');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const userInfo = JSON.parse(userInfoStr);
+            document.getElementById('currentUserName').textContent = userInfo.name || '用户';
+            document.getElementById('currentUserPhone').textContent = userInfo.phone;
+
+            // 并发探测所有接口（包括新的太岁光明灯API）
+            const detectionPromises = [
+                ...EVENTS_CONFIG.map(async (event) => {
+                    try {
+                        const url = event.checkUrl + encodeURIComponent(userInfo.phone);
+                        const response = await fetch(url);
+                        const data = await response.json();
+                        
+                        // 判断是否有数据
+                        let hasData = false;
+                        if (Array.isArray(data) && data.length > 0) hasData = true;
+                        if (!Array.isArray(data) && typeof data === 'object' && Object.keys(data).length > 0) hasData = true;
+
+                        return { eventId: event.id, hasData: hasData, rawData: data };
+                    } catch (error) {
+                        console.warn(`探测 ${event.name} 失败:`, error);
+                        return { eventId: event.id, hasData: false };
+                    }
+                }),
+                // 新增：探测太岁光明灯API
+                detectTaiSuiLight(userInfo.phone)
+            ];
+
+            const results = await Promise.all(detectionPromises);
+            
+            // 将结果转换为 Map 方便查找
+            const resultMap = new Map(results.map(r => [r.eventId, r.hasData]));
+
+            // 分离已报名和未报名（包含太岁光明灯）
+            const allEvents = [...EVENTS_CONFIG];
+            
+            // 添加太岁光明灯到事件配置中
+            allEvents.push({
+                id: "taisui-light",
+                name: "太岁光明灯",
+                icon: "fas fa-fire",
+                desc: "已登记太岁光明灯",
+                missingDesc: "尚未登记太岁光明灯",
+                checkUrl: "",
+                page: TAI_SUI_LIGHT_PAGE
+            });
+
+            // 分离已报名和未报名
+            const registered = [];
+            const missing = [];
+
+            // 处理所有事件（包括太岁光明灯）
+            allEvents.forEach(event => {
+                const hasData = resultMap.get(event.id);
+                if (hasData) {
+                    registered.push(event);
+                } else {
+                    missing.push(event);
+                }
+            });
+
+            // 渲染列表
+            renderList(registered, 'registeredContainer', true);
+            renderList(missing, 'missingContainer', false);
+
+            // 如果没有未报名的，隐藏"待补录"标签页
+            if (missing.length === 0) {
+                document.querySelector('.tab[onclick="switchTab(\'missing\')"]').style.display = 'none';
+                if (document.querySelector('#missing').classList.contains('active')) {
+                    switchTab('registered');
+                }
+            }
+        });
+
+        // 探测太岁光明灯数据
+        async function detectTaiSuiLight(phone) {
+            try {
+                const response = await fetch(TAI_SUI_LIGHT_API);
+                const data = await response.json();
+                
+                // 检查是否有该用户的记录
+                const hasRecord = data.some(record => {
+                    const cleanedPhone = extractMobileNumber(record.phone);
+                    const userPhone = extractMobileNumber(phone);
+                    return cleanedPhone === userPhone || cleanedPhone.slice(-7) === userPhone.slice(-7);
+                });
+
+                return { eventId: 'taisui-light', hasData: hasRecord, rawData: data };
+            } catch (error) {
+                console.warn('探测太岁光明灯失败:', error);
+                return { eventId: 'taisui-light', hasData: false };
+            }
+        }
+
+        // 从太岁光明灯API中提取手机号的辅助函数（复用原代码）
+        function extractMobileNumber(phone) {
+            if (!phone) return '';
+            const raw = phone.toString().trim()
+                .replace(/^'/, '')        // 去除撇号
+                .replace(/\s+/g, '')      // 去空格
+                .replace(/\+\d+$/, '')    // 去除尾部 +数字
+                .replace(/[^\d]/g, '');   // 去除非数字字符
+
+            const match = raw.match(/(\d{10})$/);  // 提取最后10位
+            return match ? match[1] : raw;
+        }
+
+        function renderList(events, containerId, isRegistered) {
+            const container = document.getElementById(containerId);
+            if (events.length === 0) {
+                container.innerHTML = '<div style="color: #666; text-align: center; padding: 20px;">暂无数据</div>';
+                return;
+            }
+
+            let html = '';
+            events.forEach(event => {
+                const statusClass = isRegistered ? 'registered' : 'missing';
+                const iconClass = isRegistered ? 'fa-check-circle' : 'fa-plus-circle';
+                
+                const desc = isRegistered ? event.desc : event.missingDesc;
+                html += `
+                <a href="${event.page}" class="event-btn ${statusClass} ${event.id}">
+                    <div class="event-icon">
+                        <i class="${event.icon}"></i>
+                    </div>
+                    <div class="event-text">
+                        <p class="event-title">${event.name}</p>
+                        <p class="event-desc"><i class="fas ${iconClass}"></i> ${desc}</p>
+                    </div>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function switchTab(tabName) {
+            // 切换 Tab 样式
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll(`.tab[onclick="switchTab('${tabName}')"]`).forEach(tab => tab.classList.add('active'));
+            
+            // 切换内容显示
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        function logout() {
+            if (confirm('确定要退出吗？')) {
+                localStorage.removeItem('userInfo');
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
+</body>
+</html>
