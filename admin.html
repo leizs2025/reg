@@ -30,6 +30,9 @@
         .admin-panel { display: none; }
         .logout-btn { background: #e67e22; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; float: right; }
         .logout-btn:hover { background: #d35400; }
+        .status-badge { padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+        .status-pending { background: #f39c12; color: white; }
+        .status-normal { background: #27ae60; color: white; }
     </style>
 </head>
 <body>
@@ -166,7 +169,13 @@
                     <tbody>
             `;
             
-            users.forEach((user, index) => {
+            // 过滤掉标题行数据，只显示真正的用户数据
+            const filteredUsers = users.filter(user => {
+                // 排除标题行（如果第一个字段是'Phone'则认为是标题行）
+                return user.phone !== 'Phone' && user.phone !== 'phone';
+            });
+            
+            filteredUsers.forEach((user, index) => {
                 const maskedPwd = maskPassword(user.password);
                 const status = user.flags && user.flags.includes('FORCE_CHANGE') ? '需更改密码' : '正常';
                 const statusClass = user.flags && user.flags.includes('FORCE_CHANGE') ? 'status-pending' : 'status-normal';
