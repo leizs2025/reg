@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户注册系统</title>
+    <style>
+        /* 保持原有漂亮UI */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .step-container { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); max-width: 400px; width: 100%; transition: all 0.3s ease; }
+        .hidden { display: none !important; }
+        .form-header { text-align: center; margin-bottom: 25px; }
+        .form-header h2 { color: #2c3e50; margin: 0 0 10px 0; font-size: 24px; font-weight: 600; }
+        .form-header p { color: #7f8c8d; margin: 0; font-size: 14px; }
+        
+        .input-group { margin-bottom: 20px; position: relative; }
+        .input-group label { display: block; margin-bottom: 8px; color: #2c3e50; font-weight: 500; font-size: 14px; }
+        .input-group input { width: 100%; padding: 14px; border: 2px solid #e1e8ed; border-radius: 8px; font-size: 16px; transition: border-color 0.3s ease; box-sizing: border-box; }
+        .input-group input:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }
+        .input-group input[readonly] { background-color: #f8f9fa; color: #6c757d; cursor: not-allowed; }
+
+        /* 密码小眼睛 */
+        .toggle-password {
+            position: absolute; right: 12px; top: 42px; background: none; border: none;
+            color: #7f8c8d; font-size: 18px; cursor: pointer; padding: 4px; z-index: 10;
+        }
+        .toggle-password:hover { color: #2c3e50; }
+
+        .primary-btn { padding: 14px 24px; border: none; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; width: 100%; background: linear-gradient(135deg, #3498db, #2980b9); color: white; margin-top: 10px; }
+        .primary-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3); }
+        .primary-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .message { margin-top: 15px; padding: 12px; border-radius: 6px; font-size: 14px; text-align: center; }
+        .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        
+        .password-hint {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+            text-align: left;
+        }
+        
+        .password-error {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 开放注册表单 -->
+    <div id="registerForm" class="step-container">
+        <div class="form-header">
+            <h2>📝 用户注册</h2>
+            <p>请填写以下信息完成注册</p>
+        </div>
+        
+        <!-- 手机号 -->
+        <div class="input-group">
+            <label>手机号码</label>
+            <input type="tel" id="phone" placeholder="例: 0123456789" maxlength="11">
+        </div>
+
+        <!-- 姓名 -->
+        <div class="input-group">
+            <label>用户姓名</label>
+            <input type="text" id="name" placeholder="请输入您的真实姓名">
+        </div>
+
+        <!-- 密码 -->
+        <div class="input-group">
+            <label>设置密码</label>
+            <input type="password" id="password" placeholder="请输入密码" oninput="validatePassword()">
+            <button type="button" class="toggle-password" onclick="togglePass('password')">👁️</button>
+            <div id="passwordHint" class="password-hint">密码必须以英文字母开头</div>
+            <div id="passwordError" class="password-error"></div>
+        </div>
+
+        <!-- 确认密码 -->
+        <div class="input-group">
+            <label>确认密码</label>
+            <input type="password" id="confirmPassword" placeholder="再次输入密码" oninput="validateConfirmPassword()">
+            <button type="button" class="toggle-password" onclick="togglePass('confirmPassword')">👁️</button>
+            <div id="confirmPasswordError" class="password-error"></div>
+        </div>
+
+        <button id="submitBtn" class="primary-btn" onclick="submitRegister()">立即注册</button>
+        <div id="msg" class="message"></div>
+    </div>
+
+    <script>
+        // 配置区域
+        const GAS_URL = 'https://reg.gealarm2012.workers.dev'; 
+
+        // 切换密码显示
+        function togglePass(id) {
+            const input = document.getElementById(id);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        // 验证密码格式 - 必须以英文字母开头
+        function validatePassword() {
+            const password = document.getElementById('password').value;
+            const hint = document.getElementById('passwordHint');
+            const error = document.getElementById('passwordError');
+            
+            if (!password) {
+                error.textContent = '';
+                return true;
+            }
+            
+            const startsWithLetterRegex = /^[a-zA-Z]/;
+            if (!startsWithLetterRegex.test(password)) {
+                error.textContent = '密码必须以英文字母开头';
+                return false;
+            } else {
+                error.textContent = '';
+                return true;
+            }
+        }
+
+        // 验证确认密码
+        function validateConfirmPassword() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const error = document.getElementById('confirmPasswordError');
+            
+            if (!confirmPassword) {
+                error.textContent = '';
+                return true;
+            }
+            
+            if (password !== confirmPassword) {
+                error.textContent = '两次密码输入不一致';
+                return false;
+            } else {
+                error.textContent = '';
+                return true;
+            }
+        }
+
+        // 验证手机号格式
+        function validatePhone(phone) {
+            const malaysiaPhoneRegex = /^01[0-9]{8,9}$/;
+            return malaysiaPhoneRegex.test(phone);
+        }
+
+        // 提交注册
+        async function submitRegister() {
+            const phone = document.getElementById('phone').value.trim();
+            const name = document.getElementById('name').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const btn = document.getElementById('submitBtn');
+            const msg = document.getElementById('msg');
+
+            // 1. 基础格式验证
+            if (!phone) { 
+                msg.textContent = '请输入手机号'; 
+                msg.className = 'message error'; 
+                return; 
+            }
+            if (!validatePhone(phone)) {
+                msg.textContent = '请输入正确的马来西亚手机号 (例: 0123456789)'; 
+                msg.className = 'message error'; 
+                return; 
+            }
+            if (!name) { 
+                msg.textContent = '请输入姓名'; 
+                msg.className = 'message error'; 
+                return; 
+            }
+            if (!password) { 
+                msg.textContent = '请设置密码'; 
+                msg.className = 'message error'; 
+                return; 
+            }
+            if (!validatePassword()) {
+                msg.textContent = '密码格式不正确：必须以英文字母开头'; 
+                msg.className = 'message error'; 
+                return; 
+            }
+            if (!confirmPassword) { 
+                msg.textContent = '请确认密码'; 
+                msg.className = 'message error'; 
+                return; 
+            }
+            if (password !== confirmPassword) { 
+                msg.textContent = '两次密码不一致'; 
+                msg.className = 'message error'; 
+                return; 
+            }
+
+            btn.disabled = true;
+            btn.textContent = '注册中...';
+            msg.textContent = '';
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'registerWithPassword');
+                formData.append('phone', phone);
+                formData.append('name', name);
+                formData.append('password', password);
+
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    msg.textContent = '注册成功！正在跳转...';
+                    msg.className = 'message success';
+                    
+                    localStorage.setItem('userInfo', JSON.stringify({
+                        phone: phone,
+                        name: name,
+                        isLoggedIn: true
+                    }));
+
+                    setTimeout(() => {
+                        window.location.href = 'user-center.html'; 
+                    }, 1500);
+                } else {
+                    if (result.code === 'INVALID_PASSWORD_FORMAT') {
+                        msg.textContent = result.error || '密码格式不正确：必须以英文字母开头';
+                    } else {
+                        msg.textContent = result.error || '注册失败';
+                    }
+                    msg.className = 'message error';
+                    btn.disabled = false;
+                    btn.textContent = '立即注册';
+                }
+
+            } catch (err) {
+                msg.textContent = '网络错误：' + err.message;
+                msg.className = 'message error';
+                btn.disabled = false;
+                btn.textContent = '立即注册';
+            }
+        }
+    </script>
+</body>
+</html>
