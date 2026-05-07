@@ -361,6 +361,45 @@
             padding: 20px;
             color: #666;
         }
+        
+        /* 水子灵查询样式 */
+        .water-soul-container {
+            padding: 10px 0;
+        }
+        .water-soul-result {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .water-soul-id {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #0ea5e9;
+            margin-bottom: 5px;
+        }
+        .water-soul-name {
+            font-size: 1em;
+            color: #0284c7;
+            font-weight: 500;
+        }
+        .water-soul-name-empty {
+            font-size: 0.9em;
+            color: #6c757d;
+            font-style: italic;
+        }
+        .no-water-soul {
+            text-align: center;
+            color: #6c757d;
+            padding: 40px 20px;
+            font-size: 1.1em;
+        }
+        .water-soul-loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -409,6 +448,7 @@
                     <span class="line2">查询</span>
                 </div>
             </div>
+            <!-- 动态添加水子灵标签页 -->
         </div>
 
         <!-- 已报名内容 -->
@@ -449,6 +489,15 @@
             </div>
         </div>
 
+        <!-- 水子灵查询内容 -->
+        <div id="water-soul" class="tab-content">
+            <div class="water-soul-container">
+                <h3 class="ancestral-title">水子灵查询</h3>
+                <div id="waterSoulStatus" class="water-soul-loading">🔍 正在查询您的水子灵信息...</div>
+                <div id="waterSoulResults"></div>
+            </div>
+        </div>
+
         <button class="logout-btn" onclick="logout()">
             <i class="fas fa-sign-out-alt"></i> 退出登录
         </button>
@@ -472,25 +521,6 @@
             }
             return greeting;
         }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // 设置问候语
-            document.getElementById('timeGreeting').textContent = getTimeGreeting();
-            document.getElementById('personalGreeting').textContent = '欢迎回来！';
-
-            const userInfoStr = localStorage.getItem('userInfo');
-            if (!userInfoStr) {
-                alert('请先登录');
-                window.location.href = 'login.html';
-                return;
-            }
-
-            const userInfo = JSON.parse(userInfoStr);
-            document.getElementById('currentUserName').textContent = userInfo.name || '用户';
-            document.getElementById('currentUserPhone').textContent = userInfo.phone;
-
-            // 其他原有代码...
-        });
 
         const EVENTS_CONFIG = [
             {
@@ -531,6 +561,9 @@
         // 祖先查询API
         const ANCESTRAL_API_URL = "https://script.google.com/macros/s/AKfycbzWLQcsMwfoDgFe2H2-dyeOFVtH0SOs39CZo-PyOPwlMSJHaAAmwKpgFM9K0KEpCvBq/exec?q=*";
         
+        // 水子灵查询API
+        const WATER_SOUL_API_URL = "https://script.google.com/macros/s/AKfycbxojh7q2F9Tmtv1zs2GMXp8sSVDaWy2oxK14ynke7BNDL54PVlAfDMO7A_8tZbAMfM/exec";
+        
         let userData = {}; // 存储所有接口返回的数据
         let registrationLookup = {
           taiSui: {}, longevity: {}, wisdom: {}, arhat: {}, light: {}
@@ -556,7 +589,7 @@
             orderAndAssign(fullData.arhat || [], registrationLookup.arhat);
 
             const lightList = fullData.light || [];
-            const limits = { A: 627, B: 627, C: 756, D: 756, E: 644, F: 644, G: 644, H: 644 };
+            const limits = { A: 627, B: 627, C: 756, D: 756, E: 644, F: 644, G: 627, H: 627, I: 627, J: 627 };
             let i = 0;
             for (const group in limits) {
               for (let j = 0; j < limits[group]; j++) {
@@ -580,6 +613,106 @@
           } catch (err) {
             document.getElementById('ancestralStatus').textContent = '❌ 数据加载失败，请刷新页面';
           }
+        }
+
+        // 自动查询水子灵信息
+        async function searchWaterSoulAuto(userInfo) {
+          try {
+            const { name, phone } = userInfo;
+            const queries = [name, phone, phone.slice(-6), phone.slice(-7)]; // 尝试姓名和电话及后几位
+            
+            for (const query of queries) {
+              if (!query) continue;
+              
+              const response = await fetch(`${WATER_SOUL_API_URL}?q=${encodeURIComponent(query)}`);
+              const data = await response.json();
+              
+              if (Array.isArray(data) && data.length > 0) {
+                // 找到数据，显示水子灵标签页
+                showWaterSoulTab();
+                
+                // 显示查询结果
+                displayWaterSoulResults(data);
+                
+                // 如果当前在水子灵标签页，则立即显示结果
+                if (document.querySelector('.tab.active').getAttribute('onclick') === "switchTab('water-soul')") {
+                  displayWaterSoulResults(data);
+                }
+                return data;
+              }
+            }
+            
+            // 没有找到数据，隐藏水子灵标签页
+            hideWaterSoulTab();
+            return [];
+          } catch (error) {
+            console.error('水子灵查询失败:', error);
+            hideWaterSoulTab();
+            return [];
+          }
+        }
+
+        // 显示水子灵标签页
+        function showWaterSoulTab() {
+          const tabs = document.querySelector('.tabs');
+          const existingTab = document.querySelector('.tab[data-tab-type="water-soul"]');
+          
+          if (!existingTab) {
+            const tab = document.createElement('div');
+            tab.className = 'tab';
+            tab.setAttribute('data-tab-type', 'water-soul');
+            tab.onclick = () => switchTab('water-soul');
+            tab.innerHTML = `
+              <div class="multi-line">
+                <span class="line1">水子灵</span>
+                <span class="line2">查询</span>
+              </div>
+            `;
+            tabs.appendChild(tab);
+          }
+        }
+
+        // 隐藏水子灵标签页
+        function hideWaterSoulTab() {
+          const tab = document.querySelector('.tab[data-tab-type="water-soul"]');
+          if (tab) {
+            tab.style.display = 'none';
+          }
+        }
+
+        // 显示水子灵查询结果
+        function displayWaterSoulResults(results) {
+          const resultsDiv = document.getElementById('waterSoulResults');
+          const statusDiv = document.getElementById('waterSoulStatus');
+          
+          if (!results || results.length === 0) {
+            resultsDiv.innerHTML = '';
+            statusDiv.innerHTML = '<div class="no-water-soul">未找到水子灵记录</div>';
+            return;
+          }
+          
+          statusDiv.innerHTML = '';
+          let html = '';
+          
+          results.forEach(result => {
+            const waterSoulName = result['水子灵姓名'];
+            let nameDisplay = '';
+            
+            if (waterSoulName && waterSoulName.trim() !== "") {
+              nameDisplay = `<div class="water-soul-name">${waterSoulName}</div>`;
+            } else {
+              nameDisplay = `<div class="water-soul-name-empty">水子灵姓名：暂无</div>`;
+            }
+            
+            html += `
+              <div class="water-soul-result">
+                <div class="water-soul-id">水子灵编號: ${result['水子灵编號']}</div>
+                ${nameDisplay}
+              </div>
+            `;
+          });
+          
+          resultsDiv.innerHTML = html;
         }
 
         document.addEventListener('DOMContentLoaded', async function() {
@@ -624,7 +757,9 @@
                     }
                 }),
                 // 新增：探测太岁光明灯API
-                detectTaiSuiLight(userInfo.phone)
+                detectTaiSuiLight(userInfo.phone),
+                // 新增：探测水子灵API
+                searchWaterSoulAuto(userInfo)
             ];
 
             const results = await Promise.all(detectionPromises);
@@ -671,6 +806,12 @@
             // 如果用户没有太岁光明灯数据，隐藏"我的排位"标签页
             if (!resultMap.get('taisui-light')) {
                 document.querySelector('.tab[onclick="switchTab(\'rankings\')"]').style.display = 'none';
+            }
+            
+            // 检查水子灵查询结果，决定是否显示标签页
+            const waterSoulResult = results[results.length - 1]; // 最后一个是水子灵查询结果
+            if (!waterSoulResult || waterSoulResult.length === 0) {
+              hideWaterSoulTab();
             }
         });
 
@@ -739,7 +880,7 @@
                     }
                     if (entry.arhat) {
                         const arhatNum = registrationLookup.arhat[normalizeName(entry.name)];
-                        html += `十六罗汉：${arhatNum || '未分配'}　`;
+                        html += `十八罗汉：${arhatNum || '未分配'}　`;
                     }
                     
                     html += '</div>';
@@ -902,11 +1043,19 @@
         function switchTab(tabName) {
             // 切换 Tab 样式
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll(`.tab[onclick="switchTab('${tabName}')"]`).forEach(tab => tab.classList.add('active'));
+            document.querySelectorAll(`.tab[onclick="switchTab('${tabName}')"], .tab[data-tab-type="${tabName}"]`).forEach(tab => tab.classList.add('active'));
             
             // 切换内容显示
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
+            
+            // 如果切换到水子灵标签页且数据已加载，显示结果
+            if (tabName === 'water-soul') {
+              const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+              if (userInfo) {
+                searchWaterSoulAuto(userInfo);
+              }
+            }
         }
 
         function logout() {
