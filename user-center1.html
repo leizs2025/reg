@@ -18,7 +18,7 @@
 
         .dashboard-card {
             width: 100%;
-            max-width: 520px; /* 宽一点以便容纳两列 */
+            max-width: 520px;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 20px;
@@ -36,6 +36,23 @@
             font-size: 1.8rem;
             margin: 0 0 15px 0;
             text-shadow: none;
+        }
+        
+        .greeting-section {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .time-greeting {
+            color: #6a11cb;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .personal-greeting {
+            color: #2575fc;
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 10px;
         }
 
         .user-info {
@@ -79,18 +96,43 @@
             margin-right: auto;
         }
         .tab {
-            padding: 8px 20px;
+            padding: 8px 14px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 500;
             transition: 0.2s;
             color: #666;
+            font-size: 0.9rem;
+            text-align: center;
+            min-width: 70px;
         }
         .tab.active {
             background: white;
             color: #2575fc;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+        
+        /* 标签页标题多行显示 */
+        .tab .multi-line {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+        .tab .line1 {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .tab .line2 {
+            font-size: 0.7rem;
+            color: #333;
+            margin-top: 2px;
+        }
+
+     /* 选中状态时，两行都用蓝色（保持视觉统一） */
+    .tab.active .line1,
+    .tab.active .line2 {
+        color: #2575fc;
+    }       
 
         /* 按钮样式增强 */
         .events-grid {
@@ -180,7 +222,7 @@
         .qifu .event-icon { background-color: #d1fae5; color: #047857; }
         .chaodu .event-icon { background-color: #ede9fe; color: #7e22ce; }
         .taisui .event-icon { background-color: #fed7aa; color: #c2410c; }
-        .taisui-light .event-icon { background-color: #fef3c7; color: #d97706; }
+        .ancestral .event-icon { background-color: #dbeafe; color: #1e40af; }
 
         .event-text { flex: 1; text-align: left; }
         .event-title { font-weight: 600; font-size: 1.1rem; margin: 0 0 4px 0; transition: color 0.3s; }
@@ -232,12 +274,144 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        /* 排位信息卡片 */
+        .rankings-container {
+            display: grid;
+            gap: 15px;
+        }
+        .ranking-card {
+            background: #fff9f5;
+            border: 1px solid #ffdfc4;
+            border-radius: 12px;
+            padding: 15px;
+        }
+        .ranking-header {
+            font-weight: bold;
+            color: #c9302c;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        .ranking-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #ffe5d0;
+        }
+        .ranking-item:last-child {
+            border-bottom: none;
+        }
+        .no-rankings {
+            text-align: center;
+            color: #666;
+            padding: 30px;
+        }
+        
+        /* 祖先查询样式 */
+        .ancestral-search-container {
+            padding: 10px 0;
+        }
+        .ancestral-search-container input, 
+        .ancestral-search-container button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 16px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        .ancestral-search-container button {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .ancestral-search-container button:hover {
+            background: #4338ca;
+        }
+        .ancestral-title {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            margin: 0 0 15px 0;
+        }
+        .module-title {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 18px;
+            color: #333;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 4px;
+        }
+        .result {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 12px;
+            background: #f9f9f9;
+        }
+        .notfound {
+            margin-top: 20px;
+            color: red;
+            text-align: center;
+        }
+        .ancestral-loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        /* 水子灵查询样式 */
+        .water-soul-container {
+            padding: 10px 0;
+        }
+        .water-soul-result {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .water-soul-id {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #0ea5e9;
+            margin-bottom: 5px;
+        }
+        .water-soul-name {
+            font-size: 1em;
+            color: #0284c7;
+            font-weight: 500;
+        }
+        .water-soul-name-empty {
+            font-size: 0.9em;
+            color: #6c757d;
+            font-style: italic;
+        }
+        .no-water-soul {
+            text-align: center;
+            color: #6c757d;
+            padding: 40px 20px;
+            font-size: 1.1em;
+        }
+        .water-soul-loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
     <div class="dashboard-card">
         <div class="header">
             <h1><i class="fas fa-leaf"></i> 个人中心</h1>
+            
+            <div class="greeting-section">
+                <div class="time-greeting" id="timeGreeting">早上好！</div>
+                <div class="personal-greeting" id="personalGreeting">欢迎回来！</div>
+            </div>
+            
             <div class="user-info">
                 <div class="user-name">
                     <i class="fas fa-user-circle"></i> <span id="currentUserName">加载中...</span>
@@ -250,8 +424,31 @@
 
         <!-- 标签页切换 -->
         <div class="tabs">
-            <div class="tab active" onclick="switchTab('registered')">已报名法会</div>
-            <div class="tab" onclick="switchTab('missing')">未报名法会</div>
+            <div class="tab active" onclick="switchTab('registered')">
+                <div class="multi-line">
+                    <span class="line1">已报名</span>
+                    <span class="line2">法会</span>
+                </div>
+            </div>
+            <div class="tab" onclick="switchTab('missing')">
+                <div class="multi-line">
+                    <span class="line1">其他</span>
+                    <span class="line2">法会</span>
+                </div>
+            </div>
+            <div class="tab" onclick="switchTab('rankings')">
+                <div class="multi-line">
+                    <span class="line1">太岁/光明灯</span>
+                    <span class="line2">编号</span>
+                </div>
+            </div>
+            <div class="tab" onclick="switchTab('ancestral')">
+                <div class="multi-line">
+                    <span class="line1">牌位/福位</span>
+                    <span class="line2">查询</span>
+                </div>
+            </div>
+            <!-- 动态添加水子灵标签页 -->
         </div>
 
         <!-- 已报名内容 -->
@@ -272,12 +469,59 @@
             </div>
         </div>
 
+        <!-- 我的排位内容 -->
+        <div id="rankings" class="tab-content">
+            <div class="rankings-container" id="rankingsContainer">
+                <div class="loading">
+                    <div class="loading-spinner"></div> 载入排位信息...
+                </div>
+            </div>
+        </div>
+
+        <!-- 祖先查询内容 -->
+        <div id="ancestral" class="tab-content">
+            <div class="ancestral-search-container">
+                <h3 class="ancestral-title">祖先/缠身灵牌位/灵骨殿福位 查询</h3>
+                <input id="ancestralQuery" type="text" placeholder="请输入姓名或手机号">
+                <button onclick="searchAncestral()">查询</button>
+                <div id="ancestralStatus" class="ancestral-loading">📦 正在加载资料，请稍候...</div>
+                <div id="ancestralResults"></div>
+            </div>
+        </div>
+
+        <!-- 水子灵查询内容 -->
+        <div id="water-soul" class="tab-content">
+            <div class="water-soul-container">
+                <h3 class="ancestral-title">水子灵查询</h3>
+                <div id="waterSoulStatus" class="water-soul-loading">🔍 正在查询您的水子灵信息...</div>
+                <div id="waterSoulResults"></div>
+            </div>
+        </div>
+
         <button class="logout-btn" onclick="logout()">
             <i class="fas fa-sign-out-alt"></i> 退出登录
         </button>
     </div>
 
     <script>
+        // 获取问候语
+        function getTimeGreeting() {
+            const hour = new Date().getHours();
+            let greeting = '';
+            if (hour >= 5 && hour < 12) {
+                greeting = '🌅 早上好！';
+            } else if (hour >= 12 && hour < 14) {
+                greeting = '☀️ 中午好！';
+            } else if (hour >= 14 && hour < 18) {
+                greeting = '🌤️ 下午好！';
+            } else if (hour >= 18 && hour < 22) {
+                greeting = '🌙 晚上好！';
+            } else {
+                greeting = '🌃 夜深了！';
+            }
+            return greeting;
+        }
+
         const EVENTS_CONFIG = [
             {
                 id: "qifu",
@@ -299,651 +543,544 @@
             },
             {
                 id: "taisui",
-                name: "安太岁/光明灯",
+                name: "安太岁",
                 icon: "fas fa-bullseye",
-                desc: "已登记安太岁/光明灯",
-                missingDesc: "尚未登记安太岁/光明灯",
+                desc: "已登记安太岁",
+                missingDesc: "尚未登记安太岁",
                 checkUrl: "https://lucky-cloud-f9c3.gealarm2012.workers.dev?search=", 
                 page: "hptaisui.html" 
             }
         ];
 
-  // 新增：太岁光明灯查询系统API
-const TAI_SUI_LIGHT_API = "https://script.google.com/macros/s/AKfycby4OfOpeID57yF-HcSl3CKODChlLPvgYH1TgZ02RXXkLO0YX9eRDbN6soSlKlaobvqhrg/exec?mode=all";
-const TAI_SUI_LIGHT_PAGE = "taisui-light-personal.html"; // 使用新的个人查询页面
+        // 新增：太岁光明灯查询系统API
+        const TAI_SUI_LIGHT_API = "https://script.google.com/macros/s/AKfycby4OfOpeID57yF-HcSl3CKODChlLPvgYH1TgZ02RXXkLO0YX9eRDbN6soSlKlaobvqhrg/exec?mode=all";
+        
+        // 编号查询API
+        const REGISTRATION_NUMBERS_API = "https://script.google.com/macros/s/AKfycbyZ9Z33Cb3VJnyb-V0xvOrQwhIdcVFeLuY4L5IGG_kQ0ZjX9V6e1agsfz61CkANnO4Agw/exec";
+        
+        // 祖先查询API
+        const ANCESTRAL_API_URL = "https://script.google.com/macros/s/AKfycbzWLQcsMwfoDgFe2H2-dyeOFVtH0SOs39CZo-PyOPwlMSJHaAAmwKpgFM9K0KEpCvBq/exec?q=*";
+        
+        // 水子灵查询API
+        const WATER_SOUL_API_URL = "https://script.google.com/macros/s/AKfycbxojh7q2F9Tmtv1zs2GMXp8sSVDaWy2oxK14ynke7BNDL54PVlAfDMO7A_8tZbAMfM/exec";
+        
+        let userData = {}; // 存储所有接口返回的数据
+        let registrationLookup = {
+          taiSui: {}, longevity: {}, wisdom: {}, arhat: {}, light: {}
+        };
+        let ancestralCacheData = [];
+        let ancestralDataLoaded = false;
 
-let userData = {}; // 存储所有接口返回的数据
+        // 获取编号映射
+        async function loadRegistrationNumbers() {
+          try {
+            const fullRes = await fetch(REGISTRATION_NUMBERS_API);
+            const fullData = await fullRes.json();
 
-document.addEventListener('DOMContentLoaded', async function() {
-    const userInfoStr = localStorage.getItem('userInfo');
-    if (!userInfoStr) {
-        alert('请先登录');
-        window.location.href = 'login.html';
-        return;
-    }
+            const orderAndAssign = (list, targetMap, prefix = "") => {
+              list.forEach((name, idx) => {
+                if (name) targetMap[name.trim().toUpperCase()] = prefix + (idx + 1);
+              });
+            };
 
-    const userInfo = JSON.parse(userInfoStr);
-    document.getElementById('currentUserName').textContent = userInfo.name || '用户';
-    document.getElementById('currentUserPhone').textContent = userInfo.phone;
+            orderAndAssign(fullData.taiSui || [], registrationLookup.taiSui);
+            orderAndAssign(fullData.longevity || [], registrationLookup.longevity);
+            orderAndAssign(fullData.wisdom || [], registrationLookup.wisdom);
+            orderAndAssign(fullData.arhat || [], registrationLookup.arhat);
 
-    // 并发探测所有接口（包括新的太岁光明灯API）
-    const detectionPromises = [
-        ...EVENTS_CONFIG.map(async (event) => {
-            try {
-                const url = event.checkUrl + encodeURIComponent(userInfo.phone);
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                // 判断是否有数据
-                let hasData = false;
-                if (Array.isArray(data) && data.length > 0) hasData = true;
-                if (!Array.isArray(data) && typeof data === 'object' && Object.keys(data).length > 0) hasData = true;
-
-                return { eventId: event.id, hasData: hasData, rawData: data };
-            } catch (error) {
-                console.warn(`探测 ${event.name} 失败:`, error);
-                return { eventId: event.id, hasData: false };
+            const lightList = fullData.light || [];
+            const limits = { A: 627, B: 627, C: 756, D: 756, E: 644, F: 644, G: 627, H: 627, I: 627, J: 627 };
+            let i = 0;
+            for (const group in limits) {
+              for (let j = 0; j < limits[group]; j++) {
+                const name = lightList[i++];
+                if (name) registrationLookup.light[name.trim().toUpperCase()] = `${group}${j + 1}`;
+              }
             }
-        }),
-        // 新增：探测太岁光明灯API
-        detectTaiSuiLight(userInfo.phone)
-    ];
-
-    const results = await Promise.all(detectionPromises);
-    
-    // 将结果转换为 Map 方便查找
-    const resultMap = new Map(results.map(r => [r.eventId, r.hasData]));
-    
-    // 创建完整的事件配置列表（包含太岁光明灯 - 只有当用户有数据时才添加）
-    let allEvents = [...EVENTS_CONFIG];
-    
-    // 检查太岁光明灯API中是否有该用户的数据
-    if (resultMap.get('taisui-light')) {
-        allEvents.push({
-            id: "taisui-light",
-            name: "太岁光明灯排位查询",
-            icon: "fas fa-fire",
-            desc: "已登记太岁光明灯",
-            missingDesc: "尚未登记太岁光明灯",
-            checkUrl: "",
-            page: TAI_SUI_LIGHT_PAGE
-        });
-    }
-
-    // 分离已报名和未报名
-    const registered = [];
-    const missing = [];
-
-    allEvents.forEach(event => {
-        const hasData = resultMap.get(event.id);
-        if (hasData) {
-            registered.push(event);
-        } else {
-            missing.push(event);
+          } catch (e) {
+            console.error("载入编号数据失败：", e);
+          }
         }
-    });
 
-    // 渲染列表
-    renderList(registered, 'registeredContainer', true);
-    renderList(missing, 'missingContainer', false);
-
-    // 如果没有未报名的，隐藏"待补录"标签页
-    if (missing.length === 0) {
-        document.querySelector('.tab[onclick="switchTab(\'missing\')"]').style.display = 'none';
-        if (document.querySelector('#missing').classList.contains('active')) {
-            switchTab('registered');
+        // 预加载祖先数据
+        async function preloadAncestralData() {
+          try {
+            const res = await fetch(ANCESTRAL_API_URL);
+            ancestralCacheData = await res.json();
+            ancestralDataLoaded = true;
+            document.getElementById('ancestralStatus').textContent = '✅ 数据加载完成，可以开始查询';
+            console.log('祖先数据缓存成功，共计:', ancestralCacheData.length, '条');
+          } catch (err) {
+            document.getElementById('ancestralStatus').textContent = '❌ 数据加载失败，请刷新页面';
+          }
         }
-    }
-});
 
-// 探测太岁光明灯数据
-async function detectTaiSuiLight(phone) {
-    try {
-        const response = await fetch(TAI_SUI_LIGHT_API);
-        const data = await response.json();
-        
-        // 检查是否有该用户的记录
-        const hasRecord = data.some(record => {
-            const cleanedPhone = extractMobileNumber(record.phone);
-            const userPhone = extractMobileNumber(phone);
-            return cleanedPhone === userPhone || cleanedPhone.slice(-7) === userPhone.slice(-7);
-        });
-
-        return { eventId: 'taisui-light', hasData: hasRecord, rawData: data };
-    } catch (error) {
-        console.warn('探测太岁光明灯失败:', error);
-        return { eventId: 'taisui-light', hasData: false };
-    }
-}
-
-// 从太岁光明灯API中提取手机号的辅助函数（复用原代码）
-function extractMobileNumber(phone) {
-    if (!phone) return '';
-    const raw = phone.toString().trim()
-        .replace(/^'/, '')        // 去除撇号
-        .replace(/\s+/g, '')      // 去空格
-        .replace(/\+\d+$/, '')    // 去除尾部 +数字
-        .replace(/[^\d]/g, '');   // 去除非数字字符
-
-    const match = raw.match(/(\d{10})$/);  // 提取最后10位
-    return match ? match[1] : raw;
-}
-
-function renderList(events, containerId, isRegistered) {
-    const container = document.getElementById(containerId);
-    if (events.length === 0) {
-        container.innerHTML = '<div style="color: #666; text-align: center; padding: 20px;">暂无数据</div>';
-        return;
-    }
-
-    let html = '';
-    events.forEach(event => {
-        const statusClass = isRegistered ? 'registered' : 'missing';
-        const iconClass = isRegistered ? 'fa-check-circle' : 'fa-plus-circle';
-        
-        const desc = isRegistered ? event.desc : event.missingDesc;
-        html += `
-        <a href="${event.page}" class="event-btn ${statusClass} ${event.id}">
-            <div class="event-icon">
-                <i class="${event.icon}"></i>
-            </div>
-            <div class="event-text">
-                <p class="event-title">${event.name}</p>
-                <p class="event-desc"><i class="fas ${iconClass}"></i> ${desc}</p>
-            </div>
-            <i class="fas fa-arrow-right"></i>
-        </a>
-        `;
-    });
-    container.innerHTML = html;
-}
-
-        function switchTab(tabName) {
-            // 切换 Tab 样式
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll(`.tab[onclick="switchTab('${tabName}')"]`).forEach(tab => tab.classList.add('active'));
+        // 自动查询水子灵信息
+        async function searchWaterSoulAuto(userInfo) {
+          try {
+            const { name, phone } = userInfo;
+            const queries = [name, phone, phone.slice(-6), phone.slice(-7)]; // 尝试姓名和电话及后几位
             
-            // 切换内容显示
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
+            for (const query of queries) {
+              if (!query) continue;
+              
+              const response = await fetch(`${WATER_SOUL_API_URL}?q=${encodeURIComponent(query)}`);
+              const data = await response.json();
+              
+              if (Array.isArray(data) && data.length > 0) {
+                // 找到数据，显示水子灵标签页
+                showWaterSoulTab();
+                
+                // 显示查询结果
+                displayWaterSoulResults(data);
+                
+                // 如果当前在水子灵标签页，则立即显示结果
+                if (document.querySelector('.tab.active').getAttribute('onclick') === "switchTab('water-soul')") {
+                  displayWaterSoulResults(data);
+                }
+                return data;
+              }
+            }
+            
+            // 没有找到数据，隐藏水子灵标签页
+            hideWaterSoulTab();
+            return [];
+          } catch (error) {
+            console.error('水子灵查询失败:', error);
+            hideWaterSoulTab();
+            return [];
+          }
         }
 
-        function logout() {
-            if (confirm('确定要退出吗？')) {
-                localStorage.removeItem('userInfo');
+        // 显示水子灵标签页
+        function showWaterSoulTab() {
+          const tabs = document.querySelector('.tabs');
+          const existingTab = document.querySelector('.tab[data-tab-type="water-soul"]');
+          
+          if (!existingTab) {
+            const tab = document.createElement('div');
+            tab.className = 'tab';
+            tab.setAttribute('data-tab-type', 'water-soul');
+            tab.onclick = () => switchTab('water-soul');
+            tab.innerHTML = `
+              <div class="multi-line">
+                <span class="line1">水子灵</span>
+                <span class="line2">查询</span>
+              </div>
+            `;
+            tabs.appendChild(tab);
+          }
+        }
+
+        // 隐藏水子灵标签页
+        function hideWaterSoulTab() {
+          const tab = document.querySelector('.tab[data-tab-type="water-soul"]');
+          if (tab) {
+            tab.style.display = 'none';
+          }
+        }
+
+        // 显示水子灵查询结果
+        function displayWaterSoulResults(results) {
+          const resultsDiv = document.getElementById('waterSoulResults');
+          const statusDiv = document.getElementById('waterSoulStatus');
+          
+          if (!results || results.length === 0) {
+            resultsDiv.innerHTML = '';
+            statusDiv.innerHTML = '<div class="no-water-soul">未找到水子灵记录</div>';
+            return;
+          }
+          
+          statusDiv.innerHTML = '';
+          let html = '';
+          
+          results.forEach(result => {
+            const waterSoulName = result['水子灵姓名'];
+            let nameDisplay = '';
+            
+            if (waterSoulName && waterSoulName.trim() !== "") {
+              nameDisplay = `<div class="water-soul-name">${waterSoulName}</div>`;
+            } else {
+              nameDisplay = `<div class="water-soul-name-empty">水子灵姓名：暂无</div>`;
+            }
+            
+            html += `
+              <div class="water-soul-result">
+                <div class="water-soul-id">水子灵编號: ${result['水子灵编號']}</div>
+                ${nameDisplay}
+              </div>
+            `;
+          });
+          
+          resultsDiv.innerHTML = html;
+        }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            // 设置问候语
+            document.getElementById('timeGreeting').textContent = getTimeGreeting();
+            document.getElementById('personalGreeting').textContent = '欢迎回来！';
+
+            const userInfoStr = localStorage.getItem('userInfo');
+            if (!userInfoStr) {
+                alert('请先登录');
                 window.location.href = 'login.html';
+                return;
             }
-        }
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>法会系统 - 个人中心</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            min-height: 100vh;
-            padding: 20px;
-            color: #333;
-        }
 
-        .dashboard-card {
-            width: 100%;
-            max-width: 520px; /* 宽一点以便容纳两列 */
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
-            padding: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+            const userInfo = JSON.parse(userInfoStr);
+            document.getElementById('currentUserName').textContent = userInfo.name || '用户';
+            document.getElementById('currentUserPhone').textContent = userInfo.phone;
 
-        .header {
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        .header h1 {
-            color: #222;
-            font-size: 1.8rem;
-            margin: 0 0 15px 0;
-            text-shadow: none;
-        }
+            // 并发加载各种数据
+            await Promise.all([
+                loadRegistrationNumbers(),
+                preloadAncestralData()
+            ]);
 
-        .user-info {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .user-name {
-            color: #333;
-            font-size: 1.2rem;
-            font-weight: 700;
-            text-shadow: none;
-        }
-        .user-phone {
-            background: #e0e7ff;
-            border: 1px solid #c7d2fe;
-            padding: 6px 16px;
-            border-radius: 50px;
-            color: #1e293b;
-            font-family: 'Courier New', monospace;
-            font-size: 0.95rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            text-shadow: none;
-        }
+            // 并发探测所有接口（包括新的太岁光明灯API和水子灵API）
+            const detectionPromises = [
+                ...EVENTS_CONFIG.map(async (event) => {
+                    try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时
+                        
+                        const url = event.checkUrl + encodeURIComponent(userInfo.phone);
+                        const response = await fetch(url, { signal: controller.signal });
+                        clearTimeout(timeoutId);
+                        
+                        const data = await response.json();
+                        
+                        // 判断是否有数据
+                        let hasData = false;
+                        if (Array.isArray(data) && data.length > 0) hasData = true;
+                        if (!Array.isArray(data) && typeof data === 'object' && Object.keys(data).length > 0) hasData = true;
 
-        /* 标签页样式 */
-        .tabs {
-            display: flex;
-            background: #f1f3f5;
-            border-radius: 12px;
-            padding: 4px;
-            margin-bottom: 20px;
-            justify-content: center;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .tab {
-            padding: 8px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: 0.2s;
-            color: #666;
-        }
-        .tab.active {
-            background: white;
-            color: #2575fc;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
+                        return { eventId: event.id, hasData: hasData, rawData: data };
+                    } catch (error) {
+                        console.warn(`探测 ${event.name} 失败:`, error);
+                        return { eventId: event.id, hasData: false };
+                    }
+                }),
+                // 新增：探测太岁光明灯API
+                detectTaiSuiLight(userInfo.phone),
+                // 新增：探测水子灵API
+                searchWaterSoulAuto(userInfo)
+            ];
 
-        /* 按钮样式增强 */
-        .events-grid {
-            display: grid;
-            gap: 12px;
-        }
+            const results = await Promise.allSettled(detectionPromises);
+            
+            // 处理结果
+            const processedResults = results.map((result, index) => {
+                if (result.status === 'fulfilled') {
+                    return result.value;
+                } else {
+                    // 如果是水子灵API（最后一个），返回特殊格式
+                    if (index === EVENTS_CONFIG.length + 1) {
+                      return { eventId: 'watersoul', hasData: false, rawData: [] };
+                    }
+                    // 其他API失败则返回默认值
+                    const eventIndex = index;
+                    return { eventId: EVENTS_CONFIG[eventIndex]?.id || 'unknown', hasData: false };
+                }
+            });
+            
+            // 将结果转换为 Map 方便查找
+            const resultMap = new Map(processedResults.map(r => [r.eventId, r.hasData]));
+            
+            // 创建完整的事件配置列表（不包含太岁光明灯）
+            let allEvents = [...EVENTS_CONFIG];
 
-        .event-btn {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            text-align: left;
-            padding: 14px;
-            border: none;
-            border-radius: 12px;
-            background: #ffffff;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid #f0f0f0;
-            text-decoration: none;
-            color: #333;
-            position: relative;
-            overflow: hidden;
-        }
+            // 分离已报名和未报名
+            const registered = [];
+            const missing = [];
 
-        .event-btn::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 5px;
-            background: #6a11cb;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
+            allEvents.forEach(event => {
+                const hasData = resultMap.get(event.id);
+                if (hasData) {
+                    registered.push(event);
+                } else {
+                    missing.push(event);
+                }
+            });
 
-        .event-btn:hover::before {
-            opacity: 1;
-        }
+            // 渲染列表
+            renderList(registered, 'registeredContainer', true);
+            renderList(missing, 'missingContainer', false);
 
-        /* 已报名状态：绿色系 */
-        .registered .event-btn {
-            border-left: 5px solid #10b981; /* 左侧绿条 */
-            background: #f0fdfa;
-            color: #065f46;
-        }
-        .registered .event-icon {
-            background: #dcfce7;
-            color: #16a34a;
-        }
-        .registered .event-title {
-            color: #065f46;
-        }
+            // 渲染排位信息
+            await renderRankings(userInfo.phone, processedResults.find(r => r.eventId === 'taisui-light')?.rawData || []);
 
-        /* 未报名状态：灰色系带加号 */
-        .missing .event-btn {
-            border-left: 5px solid #9ca3af; /* 左侧灰条 */
-            background: #f9fafb;
-            color: #4b5563;
-        }
-        .missing .event-btn:hover {
-            background: #f3f4f6;
-            border-color: #d1d5db;
-        }
-        .missing .event-icon {
-            background: #e5e7eb;
-            color: #4b5563;
-        }
-        .missing .event-title {
-            color: #4b5563;
-        }
+            // 页面加载完成后自动查询用户自己的祖先信息
+            setTimeout(() => {
+              if (ancestralDataLoaded) {
+                document.getElementById('ancestralQuery').value = userInfo.name || userInfo.phone;
+                searchAncestral();
+              }
+            }, 1000);
 
-        .event-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            font-size: 1.2rem;
-            flex-shrink: 0;
-        }
-
-        .qifu .event-icon { background-color: #d1fae5; color: #047857; }
-        .chaodu .event-icon { background-color: #ede9fe; color: #7e22ce; }
-        .taisui .event-icon { background-color: #fed7aa; color: #c2410c; }
-        .taisui-light .event-icon { background-color: #fef3c7; color: #d97706; }
-
-        .event-text { flex: 1; text-align: left; }
-        .event-title { font-weight: 600; font-size: 1.1rem; margin: 0 0 4px 0; transition: color 0.3s; }
-        .event-desc { font-size: 0.85rem; color: #666; margin: 0; display: flex; align-items: center; gap: 4px; }
-
-        .logout-btn {
-            width: 100%;
-            padding: 12px;
-            background: #ff4d4f;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            cursor: pointer;
-            margin-top: 25px;
-            transition: background 0.3s;
-            font-weight: 600;
-        }
-        .logout-btn:hover { background: #d9363e; }
-
-        /* 内容区域 */
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        
-        /* 加载动画 */
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
-        
-        .loading-spinner {
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #3498db;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
-</head>
-<body>
-    <div class="dashboard-card">
-        <div class="header">
-            <h1><i class="fas fa-leaf"></i> 个人中心</h1>
-            <div class="user-info">
-                <div class="user-name">
-                    <i class="fas fa-user-circle"></i> <span id="currentUserName">加载中...</span>
-                </div>
-                <div class="user-phone">
-                    <i class="fas fa-mobile-alt"></i> <span id="currentUserPhone">...</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 标签页切换 -->
-        <div class="tabs">
-            <div class="tab active" onclick="switchTab('registered')">已报名法会</div>
-            <div class="tab" onclick="switchTab('missing')">未报名法会</div>
-        </div>
-
-        <!-- 已报名内容 -->
-        <div id="registered" class="tab-content active">
-            <div class="events-grid" id="registeredContainer">
-                <div class="loading">
-                    <div class="loading-spinner"></div> 探测中...
-                </div>
-            </div>
-        </div>
-
-        <!-- 未报名内容 -->
-        <div id="missing" class="tab-content">
-            <div class="events-grid" id="missingContainer">
-                <div class="loading">
-                    <div class="loading-spinner"></div> 探测中...
-                </div>
-            </div>
-        </div>
-
-        <button class="logout-btn" onclick="logout()">
-            <i class="fas fa-sign-out-alt"></i> 退出登录
-        </button>
-    </div>
-
-    <script>
-        const EVENTS_CONFIG = [
-            {
-                id: "qifu",
-                name: "祈福法会",
-                icon: "fas fa-praying-hands",
-                desc: "已登记祈福信息",
-                missingDesc: "尚未登记祈福名单",
-                checkUrl: "https://form.gealarm2012.workers.dev/admin-qifu?search=", 
-                page: "hpqifu.html" 
-            },
-            {
-                id: "chaodu",
-                name: "超度法会",
-                icon: "fas fa-book-open",
-                desc: "已登记超度信息",
-                missingDesc: "尚未登记超度名单",
-                checkUrl: "https://form.gealarm2012.workers.dev/admin-chaodu?search=", 
-                page: "hpchaodu.html" 
-            },
-            {
-                id: "taisui",
-                name: "安太岁/光明灯",
-                icon: "fas fa-bullseye",
-                desc: "已登记安太岁/光明灯",
-                missingDesc: "尚未登记安太岁/光明灯",
-                checkUrl: "https://lucky-cloud-f9c3.gealarm2012.workers.dev?search=", 
-                page: "hptaisui.html" 
+            // 如果没有未报名的，隐藏"待补录"标签页
+            if (missing.length === 0) {
+                document.querySelector('.tab[onclick="switchTab(\'missing\')"]').style.display = 'none';
             }
-        ];
+            
+            // 如果用户没有太岁光明灯数据，隐藏"我的排位"标签页
+            if (!resultMap.get('taisui-light')) {
+                document.querySelector('.tab[onclick="switchTab(\'rankings\')"]').style.display = 'none';
+            }
+            
+            // 检查水子灵查询结果，决定是否显示标签页
+            const waterSoulResult = processedResults.find(r => r.eventId === 'watersoul');
+            if (!waterSoulResult || !waterSoulResult.hasData) {
+              hideWaterSoulTab();
+            }
+        });
 
-  // 新增：太岁光明灯查询系统API
-const TAI_SUI_LIGHT_API = "https://script.google.com/macros/s/AKfycby4OfOpeID57yF-HcSl3CKODChlLPvgYH1TgZ02RXXkLO0YX9eRDbN6soSlKlaobvqhrg/exec?mode=all";
-const TAI_SUI_LIGHT_PAGE = "taisui-light-personal.html"; // 使用新的个人查询页面
-
-let userData = {}; // 存储所有接口返回的数据
-
-document.addEventListener('DOMContentLoaded', async function() {
-    const userInfoStr = localStorage.getItem('userInfo');
-    if (!userInfoStr) {
-        alert('请先登录');
-        window.location.href = 'login.html';
-        return;
-    }
-
-    const userInfo = JSON.parse(userInfoStr);
-    document.getElementById('currentUserName').textContent = userInfo.name || '用户';
-    document.getElementById('currentUserPhone').textContent = userInfo.phone;
-
-    // 并发探测所有接口（包括新的太岁光明灯API）
-    const detectionPromises = [
-        ...EVENTS_CONFIG.map(async (event) => {
+        // 探测太岁光明灯数据
+        async function detectTaiSuiLight(phone) {
             try {
-                const url = event.checkUrl + encodeURIComponent(userInfo.phone);
-                const response = await fetch(url);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时
+                
+                const response = await fetch(TAI_SUI_LIGHT_API, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
                 const data = await response.json();
                 
-                // 判断是否有数据
-                let hasData = false;
-                if (Array.isArray(data) && data.length > 0) hasData = true;
-                if (!Array.isArray(data) && typeof data === 'object' && Object.keys(data).length > 0) hasData = true;
+                // 检查是否有该用户的记录
+                const hasRecord = data.some(record => {
+                    const cleanedPhone = extractMobileNumber(record.phone);
+                    const userPhone = extractMobileNumber(phone);
+                    return cleanedPhone === userPhone || cleanedPhone.slice(-7) === userPhone.slice(-7);
+                });
 
-                return { eventId: event.id, hasData: hasData, rawData: data };
+                return { eventId: 'taisui-light', hasData: hasRecord, rawData: data };
             } catch (error) {
-                console.warn(`探测 ${event.name} 失败:`, error);
-                return { eventId: event.id, hasData: false };
+                console.warn('探测太岁光明灯失败:', error);
+                return { eventId: 'taisui-light', hasData: false };
             }
-        }),
-        // 新增：探测太岁光明灯API
-        detectTaiSuiLight(userInfo.phone)
-    ];
-
-    const results = await Promise.all(detectionPromises);
-    
-    // 将结果转换为 Map 方便查找
-    const resultMap = new Map(results.map(r => [r.eventId, r.hasData]));
-    
-    // 创建完整的事件配置列表（包含太岁光明灯 - 只有当用户有数据时才添加）
-    let allEvents = [...EVENTS_CONFIG];
-    
-    // 检查太岁光明灯API中是否有该用户的数据
-    if (resultMap.get('taisui-light')) {
-        allEvents.push({
-            id: "taisui-light",
-            name: "太岁光明灯排位查询",
-            icon: "fas fa-fire",
-            desc: "已登记太岁光明灯",
-            missingDesc: "尚未登记太岁光明灯",
-            checkUrl: "",
-            page: TAI_SUI_LIGHT_PAGE
-        });
-    }
-
-    // 分离已报名和未报名
-    const registered = [];
-    const missing = [];
-
-    allEvents.forEach(event => {
-        const hasData = resultMap.get(event.id);
-        if (hasData) {
-            registered.push(event);
-        } else {
-            missing.push(event);
         }
-    });
 
-    // 渲染列表
-    renderList(registered, 'registeredContainer', true);
-    renderList(missing, 'missingContainer', false);
-
-    // 如果没有未报名的，隐藏"待补录"标签页
-    if (missing.length === 0) {
-        document.querySelector('.tab[onclick="switchTab(\'missing\')"]').style.display = 'none';
-        if (document.querySelector('#missing').classList.contains('active')) {
-            switchTab('registered');
+        // 渲染排位信息
+        async function renderRankings(userPhone, taiSuiLightData) {
+            const container = document.getElementById('rankingsContainer');
+            
+            // 查找用户在太岁光明灯数据中的记录
+            const userRecords = taiSuiLightData.filter(record => {
+                const cleanedPhone = extractMobileNumber(record.phone);
+                const userCleaned = extractMobileNumber(userPhone);
+                return cleanedPhone === userCleaned || cleanedPhone.slice(-7) === userCleaned.slice(-7);
+            });
+            
+            if (userRecords.length === 0) {
+                container.innerHTML = '<div class="no-rankings">暂无排位信息</div>';
+                return;
+            }
+            
+            let html = '';
+            
+            userRecords.forEach(record => {
+                html += `<div class="ranking-card">
+                    <div class="ranking-header">📝 填写者：${record.mainName}</div>`;
+                
+                record.entries.forEach(entry => {
+                    html += `<div class="ranking-item">
+                        <strong>🙏 ${entry.name}</strong> (${entry.zodiac})
+                        <br>`;
+                    
+                    if (entry.taiSui) {
+                        const taiSuiNum = registrationLookup.taiSui[normalizeName(entry.name)];
+                        html += `太岁排位：${taiSuiNum || '未分配'}　`;
+                    }
+                    if (entry.light) {
+                        const lightNum = registrationLookup.light[normalizeName(entry.name)];
+                        html += `光明灯排位：${lightNum || '未分配'}　`;
+                    }
+                    if (entry.longevity) {
+                        const longevityNum = registrationLookup.longevity[normalizeName(entry.name)];
+                        html += `长生禄位：${longevityNum || '未分配'}　`;
+                    }
+                    if (entry.wisdom) {
+                        const wisdomNum = registrationLookup.wisdom[normalizeName(entry.name)];
+                        html += `文昌帝君：${wisdomNum || '未分配'}　`;
+                    }
+                    if (entry.arhat) {
+                        const arhatNum = registrationLookup.arhat[normalizeName(entry.name)];
+                        html += `十八罗汉：${arhatNum || '未分配'}　`;
+                    }
+                    
+                    html += '</div>';
+                });
+                
+                html += '</div>';
+            });
+            
+            container.innerHTML = html;
         }
-    }
-});
 
-// 探测太岁光明灯数据
-async function detectTaiSuiLight(phone) {
-    try {
-        const response = await fetch(TAI_SUI_LIGHT_API);
-        const data = await response.json();
+        // 从太岁光明灯API中提取手机号的辅助函数（复用原代码）
+        function extractMobileNumber(phone) {
+            if (!phone) return '';
+            const raw = phone.toString().trim()
+                .replace(/^'/, '')        // 去除撇号
+                .replace(/\s+/g, '')      // 去空格
+                .replace(/\+\d+$/, '')    // 去除尾部 +数字
+                .replace(/[^\d]/g, '');   // 去除非数字字符
+
+            const match = raw.match(/(\d{10})$/);  // 提取最后10位
+            return match ? match[1] : raw;
+        }
         
-        // 检查是否有该用户的记录
-        const hasRecord = data.some(record => {
-            const cleanedPhone = extractMobileNumber(record.phone);
-            const userPhone = extractMobileNumber(phone);
-            return cleanedPhone === userPhone || cleanedPhone.slice(-7) === userPhone.slice(-7);
-        });
-
-        return { eventId: 'taisui-light', hasData: hasRecord, rawData: data };
-    } catch (error) {
-        console.warn('探测太岁光明灯失败:', error);
-        return { eventId: 'taisui-light', hasData: false };
-    }
-}
-
-// 从太岁光明灯API中提取手机号的辅助函数（复用原代码）
-function extractMobileNumber(phone) {
-    if (!phone) return '';
-    const raw = phone.toString().trim()
-        .replace(/^'/, '')        // 去除撇号
-        .replace(/\s+/g, '')      // 去空格
-        .replace(/\+\d+$/, '')    // 去除尾部 +数字
-        .replace(/[^\d]/g, '');   // 去除非数字字符
-
-    const match = raw.match(/(\d{10})$/);  // 提取最后10位
-    return match ? match[1] : raw;
-}
-
-function renderList(events, containerId, isRegistered) {
-    const container = document.getElementById(containerId);
-    if (events.length === 0) {
-        container.innerHTML = '<div style="color: #666; text-align: center; padding: 20px;">暂无数据</div>';
-        return;
-    }
-
-    let html = '';
-    events.forEach(event => {
-        const statusClass = isRegistered ? 'registered' : 'missing';
-        const iconClass = isRegistered ? 'fa-check-circle' : 'fa-plus-circle';
+        function normalizeName(name) {
+          return (name || '').trim().toUpperCase();
+        }
         
-        const desc = isRegistered ? event.desc : event.missingDesc;
-        html += `
-        <a href="${event.page}" class="event-btn ${statusClass} ${event.id}">
-            <div class="event-icon">
-                <i class="${event.icon}"></i>
-            </div>
-            <div class="event-text">
-                <p class="event-title">${event.name}</p>
-                <p class="event-desc"><i class="fas ${iconClass}"></i> ${desc}</p>
-            </div>
-            <i class="fas fa-arrow-right"></i>
-        </a>
-        `;
-    });
-    container.innerHTML = html;
-}
+        // 祖先查询相关函数
+        const SHEET_LABELS = {
+          "祖先1": "祖先莲位查询",
+          "缠身灵1": "缠身牌位查询",
+          "data1": "靈骨殿福位查询"
+        };
+
+        const FIELD_ALIASES = {
+          "安奉者 中文姓名": "安奉者 姓名",
+          "安奉者 1 中文姓名": "安奉者1 姓名",
+          "安奉者1  中文姓名": "安奉者1 姓名",
+          "阳上报恩人 中文姓名": "阳上报恩人 姓名",
+          "親屬 1 中文姓名": "親屬 1 姓名",
+          "親屬 2 中文姓名": "親屬 2 姓名",
+          "功德主 中文姓名": "功德主 姓名"
+        };
+
+        const SHEET_FIELDS = {
+          "data1": ["福位编號", "安奉者 中文姓名", "安奉者1  中文姓名"],
+          "祖先1": ["祖先编號", "安奉者 中文姓名", "安奉者 1 中文姓名"],
+          "缠身灵1": ["缠身灵灵编號", "阳上报恩人 中文姓名"]
+        };
+
+        const zhMap = {
+          "陳": "陈", "張": "张", "黃": "黄", "蘇": "苏", "劉": "刘", "馬": "马",
+          "馮": "冯", "許": "许", "謝": "谢", "鄧": "邓", "葉": "叶", "龔": "龚",
+          "應": "应", "親": "亲", "靈": "灵", "臺": "台", "聯": "联", "顯": "显",
+          "戶": "户", "點": "点", "書": "书", "萬": "万", "兒": "儿", "國": "国",
+          "體": "体", "風": "风", "東": "东", "龍": "龙"
+        };
+
+        function toSimplified(str) {
+          return str.split('').map(ch => zhMap[ch] || ch).join('');
+        }
+
+        function searchAncestral() {
+          const query = document.getElementById('ancestralQuery').value.trim();
+          const resultsDiv = document.getElementById('ancestralResults');
+          resultsDiv.innerHTML = '';
+
+          if (!ancestralDataLoaded) {
+            alert('数据尚未加载完成，请稍后再试');
+            return;
+          }
+
+          if (!query) return alert('请输入查询内容');
+
+          const simpQuery = toSimplified(query);
+          const result = ancestralCacheData.filter(item => {
+            const values = Object.values(item).map(v => toSimplified(v?.toString() || '').trim());
+
+            return values.some(v => {
+              if (!v) return false;
+
+              // 完全匹配
+              if (v === simpQuery) return true;
+
+              // 后四位数字匹配（不限长度、不限开头）
+              const digits = v.replace(/\D/g, '');
+              if (digits.length >= 4 && simpQuery.length === 4 && digits.slice(-4) === simpQuery) {
+                return true;
+              }
+
+              return false;
+            });
+          });
+
+          if (result.length === 0) {
+            resultsDiv.innerHTML = '<div class="notfound">未找到对应信息</div>';
+            return;
+          }
+
+          const grouped = {};
+          result.forEach(item => {
+            const source = item['来源'] || '未分类';
+            if (!grouped[source]) grouped[source] = [];
+            grouped[source].push(item);
+          });
+
+          for (const [sheet, items] of Object.entries(grouped)) {
+            const label = SHEET_LABELS[sheet] || sheet;
+            const fields = SHEET_FIELDS[sheet] || Object.keys(items[0]);
+
+            const title = document.createElement('div');
+            title.className = 'module-title';
+            title.textContent = label;
+            resultsDiv.appendChild(title);
+
+            items.forEach(item => {
+              const div = document.createElement('div');
+              div.className = 'result';
+              const html = fields.map(key => {
+                const actualKey = Object.keys(item).find(k => k.trim() === key.trim());
+                const label = FIELD_ALIASES[actualKey] || actualKey || key;
+                return actualKey ? `<b>${label}</b>: ${item[actualKey]}` : '';
+              }).join('<br>');
+              div.innerHTML = html;
+              resultsDiv.appendChild(div);
+            });
+          }
+        }
+
+        function renderList(events, containerId, isRegistered) {
+            const container = document.getElementById(containerId);
+            if (events.length === 0) {
+                container.innerHTML = '<div style="color: #666; text-align: center; padding: 20px;">暂无数据</div>';
+                return;
+            }
+
+            let html = '';
+            events.forEach(event => {
+                const statusClass = isRegistered ? 'registered' : 'missing';
+                const iconClass = isRegistered ? 'fa-check-circle' : 'fa-plus-circle';
+                
+                const desc = isRegistered ? event.desc : event.missingDesc;
+                html += `
+                <a href="${event.page}" class="event-btn ${statusClass} ${event.id}">
+                    <div class="event-icon">
+                        <i class="${event.icon}"></i>
+                    </div>
+                    <div class="event-text">
+                        <p class="event-title">${event.name}</p>
+                        <p class="event-desc"><i class="fas ${iconClass}"></i> ${desc}</p>
+                    </div>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                `;
+            });
+            container.innerHTML = html;
+        }
 
         function switchTab(tabName) {
             // 切换 Tab 样式
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll(`.tab[onclick="switchTab('${tabName}')"]`).forEach(tab => tab.classList.add('active'));
+            document.querySelectorAll(`.tab[onclick="switchTab('${tabName}')"], .tab[data-tab-type="${tabName}"]`).forEach(tab => tab.classList.add('active'));
             
             // 切换内容显示
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
+            
+            // 如果切换到水子灵标签页且数据已加载，显示结果
+            if (tabName === 'water-soul') {
+              const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+              if (userInfo) {
+                searchWaterSoulAuto(userInfo);
+              }
+            }
         }
 
         function logout() {
