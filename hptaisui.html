@@ -453,30 +453,28 @@
             return /^0\d{9,10}$/.test(cleanPhone);
         }
 
-        // 从带前缀的手机号中提取真实手机号（适用于马来西亚格式）
-        function extractRealPhone(phoneWithPrefix) {
-            if (!phoneWithPrefix) return phoneWithPrefix;
-            
-            // 如果长度大于10且第一位是数字，则认为是年份前缀
-            // 马来西亚手机号：0 + 9-10位数字 = 10-11位
-            // 加上前缀后：1位年份 + 0 + 9-10位 = 11-12位
-            if (phoneWithPrefix.length > 10 && /^[0-9]$/.test(phoneWithPrefix.charAt(0))) {
-                const withoutPrefix = phoneWithPrefix.substring(1); // 去掉第一位前缀
-                
-                // 验证剩余部分是否符合马来西亚手机号格式
-                if (isValidMalaysianPhone(withoutPrefix)) {
-                    return withoutPrefix;
-                }
-            }
-            
-            // 如果不符合前缀规则，但本身是有效手机号，直接返回
-            if (isValidMalaysianPhone(phoneWithPrefix)) {
-                return phoneWithPrefix;
-            }
-            
-            return phoneWithPrefix;
-        }
-
+// 修正后的提取真实手机号函数
+function extractRealPhone(phoneWithPrefix) {
+  if (!phoneWithPrefix) return phoneWithPrefix;
+  
+  // 如果长度是11位（1位年份前缀 + 10位手机号）或12位（1位年份前缀 + 11位手机号）
+  // 且第一位是数字，则认为是年份前缀
+  if ((phoneWithPrefix.length === 11 || phoneWithPrefix.length === 12) && /^[0-9]$/.test(phoneWithPrefix.charAt(0))) {
+    const withoutPrefix = phoneWithPrefix.substring(1); // 去掉第一位前缀
+    
+    // 验证剩余部分是否符合马来西亚手机号格式
+    if (isValidMalaysianPhone(withoutPrefix)) {
+      return withoutPrefix;
+    }
+  }
+  
+  // 如果不符合前缀规则，但本身是有效手机号，直接返回
+  if (isValidMalaysianPhone(phoneWithPrefix)) {
+    return phoneWithPrefix;
+  }
+  
+  return phoneWithPrefix;
+}
         // 为手机号添加前缀（直接替换第一位数字）
         function addPhonePrefix(phone, year) {
             if (!phone || !year) return phone;
@@ -492,29 +490,43 @@
             return phone; // 如果不是有效手机号，返回原值
         }
 
-        // 更新手机号显示（直接替换第一位数字来响应年份变化）
-        function updatePhoneWithYearPrefix() {
-            const phoneInput = document.getElementById("phoneNumber");
-            const yearSelect = document.getElementById("registrationYear");
-            const selectedYear = parseInt(yearSelect.value);
-            
-            // 只有当选择了具体年份时才执行替换逻辑
-            if (!selectedYear || !phoneInput.value) return;
-            
-            const yearLastDigit = selectedYear % 10; // 获取年份最后一位数字
-            const currentPhone = phoneInput.value;
-            
-            // 如果当前手机号已经有前缀（长度大于10），替换第一位
-            if (currentPhone.length > 10 && /^[0-9]$/.test(currentPhone.charAt(0))) {
-                // 替换第一位数字
-                const newPhone = yearLastDigit + currentPhone.substring(1);
-                phoneInput.value = newPhone;
-            } else if (currentPhone.length >= 10) {
-                // 如果没有前缀，直接添加前缀
-                phoneInput.value = yearLastDigit + currentPhone;
-            }
-        }
-
+  // 修正后的更新函数
+function updatePhoneWithYearPrefix() {
+  const phoneInput = document.getElementById("phoneNumber");
+  const yearSelect = document.getElementById("registrationYear");
+  const selectedYear = parseInt(yearSelect.value);
+  
+  if (!selectedYear || !phoneInput.value) return;
+  
+  const yearLastDigit = selectedYear % 10;
+  let currentPhone = phoneInput.value;
+  
+  // 如果当前手机号已经是带年份前缀的格式（11位或12位）
+  if ((currentPhone.length === 11 || currentPhone.length === 12) && /^[0-9]$/.test(currentPhone.charAt(0))) {
+    // 提取真实手机号码（去掉年份前缀）
+    const realPhone = currentPhone.substring(1);
+    
+    // 验证是否为有效的马来西亚手机号
+    if (isValidMalaysianPhone(realPhone)) {
+      // 是有效的马来西亚手机号，用新前缀替换旧前缀
+      phoneInput.value = yearLastDigit + realPhone;
+    } else {
+      // 不是有效的手机号，按原逻辑处理
+      phoneInput.value = yearLastDigit + currentPhone;
+    }
+  }
+  // 如果是标准的马来西亚手机号格式（10位或11位），直接添加年份前缀
+  else if ((currentPhone.length === 10 || currentPhone.length === 11) && 
+           currentPhone.charAt(0) === '0' && 
+           currentPhone.charAt(1) === '1') {
+    // 添加年份前缀
+    phoneInput.value = yearLastDigit + currentPhone;
+  }
+  // 其他情况按原逻辑处理
+  else {
+    phoneInput.value = yearLastDigit + currentPhone;
+  }
+}
         // 计算总价格
         function calculateTotalPrice() {
             let totalPaperGold = 0;
